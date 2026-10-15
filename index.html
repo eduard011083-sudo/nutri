@@ -1,27 +1,94 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>NutriBalance — Telegram Mini App</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    :root {
-      --bg-mint: #F2FBF6;
-      --card-bg: #FFFFFF;
-      --border-mint: #D1F2DF;
-      --emerald-main: #0F9F6E;
-      --text-dark: #0A2E22;
-      --text-muted: #4A6B5D;
-    }
-    body {
-      background-color: var(--bg-mint);
-      color: var(--text-dark);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      padding-bottom: 90px;
-    }
-    .mint-card {
-      background: #FFFFFF;
-      border: 1
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriBalance – Калькулятор рациона</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-mint: #F2FBF6;
+            --card-bg: #FFFFFF;
+            --emerald-main: #0F9F6E;
+            --text-dark: #0A2E22;
+        }
+        body {
+            background-color: var(--bg-mint);
+            color: var(--text-dark);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding-bottom: 90px;
+        }
+    </style>
+</head>
+<body class="p-4 max-w-md mx-auto">
+    <div id="app">
+        <header class="mb-6 text-center">
+            <h1 class="text-2xl font-bold text-emerald-800">🥗 NutriBalance</h1>
+            <p class="text-sm text-gray-600">Ваш персональный мини-апп в Telegram</p>
+        </header>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-emerald-100 mb-4">
+            <h2 class="font-semibold text-lg mb-3">👤 Ваши параметры</h2>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-gray-500">Цель</label>
+                    <select id="goal" class="w-full p-2 border rounded-xl bg-gray-50 text-sm">
+                        <option value="-15">Снижение веса (-15%)</option>
+                        <option value="0" selected>Поддержание веса</option>
+                        <option value="15">Набор массы (+15%)</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-xs text-gray-500">Вес (кг)</label>
+                        <input type="number" id="weight" value="70" class="w-full p-2 border rounded-xl text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500">Рост (см)</label>
+                        <input type="number" id="height" value="175" class="w-full p-2 border rounded-xl text-sm">
+                    </div>
+                </div>
+                <button onclick="calculate()" class="w-full bg-emerald-600 text-white py-2.5 rounded-xl font-medium shadow-sm hover:bg-emerald-700 transition">
+                    Рассчитать норму
+                </button>
+            </div>
+        </div>
+
+        <div id="result" class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 text-center hidden">
+            <h3 class="font-bold text-emerald-900 text-lg mb-1">Ваша норма КБЖУ:</h3>
+            <p id="kcalResult" class="text-2xl font-extrabold text-emerald-700">2000 ккал</p>
+            <p id="macrosResult" class="text-sm text-emerald-800 mt-1">Белки: 120г | Жиры: 65г | Углеводы: 220г</p>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        }
+
+        function calculate() {
+            const w = parseFloat(document.getElementById('weight').value) || 70;
+            const h = parseFloat(document.getElementById('height').value) || 175;
+            const goalMod = parseFloat(document.getElementById('goal').value) || 0;
+
+            // Упрощенный расчет по Миффлину-Сан-Жеору для мужчин
+            let bmr = (10 * w) + (6.25 * h) - (5 * 35) + 5;
+            let targetKcal = Math.round(bmr * 1.375 * (1 + goalMod / 100));
+            let p = Math.round(w * 1.8);
+            let f = Math.round((targetKcal * 0.3) / 9);
+            let c = Math.round((targetKcal - (p * 4) - (f * 9)) / 4);
+
+            document.getElementById('kcalResult').innerText = targetKcal + ' ккал в день';
+            document.getElementById('macrosResult').innerText = `Белки: ${p}г | Жиры: ${f}г | Углеводы: ${c}г`;
+            document.getElementById('result').classList.remove('hidden');
+
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            }
+        }
+    </script>
+</body>
+</html>
