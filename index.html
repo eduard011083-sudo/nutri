@@ -7,64 +7,84 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #F2FBF6; color: #0A2E22; font-family: -apple-system, sans-serif; padding-bottom: 50px; }
+        body { background-color: #F2FBF6; color: #0A2E22; font-family: -apple-system, sans-serif; padding-bottom: 20px; }
     </style>
 </head>
-<body class="p-4 max-w-md mx-auto">
-    <div class="text-center mb-4">
-        <h1 class="text-xl font-bold text-emerald-800">🥗 NutriBalance</h1>
+<body class="p-3 max-w-md mx-auto text-xs">
+    <div class="text-center mb-2">
+        <h1 class="text-base font-bold text-emerald-800">🥗 NutriBalance</h1>
     </div>
-    <div class="bg-white p-4 rounded-2xl shadow-sm border border-emerald-100 mb-4">
-        <h2 class="font-semibold text-sm mb-2 text-emerald-900">👤 Ваши параметры</h2>
-        <div class="space-y-2">
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="text-xs text-gray-500">Вес (кг)</label>
-                    <input type="number" id="w" value="75" class="w-full p-2 border rounded-xl bg-gray-50 text-sm">
-                </div>
-                <div>
-                    <label class="text-xs text-gray-500">Рост (см)</label>
-                    <input type="number" id="h" value="175" class="w-full p-2 border rounded-xl bg-gray-50 text-sm">
-                </div>
+    
+    <!-- Параметры -->
+    <div class="bg-white p-3 rounded-xl shadow-sm border border-emerald-100 mb-2">
+        <div class="grid grid-cols-3 gap-1.5 mb-2">
+            <div>
+                <label class="text-[10px] text-gray-500">Вес (кг)</label>
+                <input type="number" id="w" value="75" class="w-full p-1.5 border rounded-lg bg-gray-50 text-xs">
             </div>
             <div>
-                <label class="text-xs text-gray-500">Цель</label>
-                <select id="goal" class="w-full p-2 border rounded-xl bg-gray-50 text-sm">
-                    <option value="-15">Снижение (-15%)</option>
-                    <option value="0" selected>Поддержание</option>
-                    <option value="15">Набор (+15%)</option>
-                </select>
+                <label class="text-[10px] text-[var(--text-muted)] text-gray-500">Рост</label>
+                <input type="number" id="h" value="175" class="w-full p-1.5 border rounded-lg bg-gray-50 text-xs">
             </div>
-            <button onclick="calc()" class="w-full bg-emerald-600 text-white py-2.5 rounded-xl font-medium text-sm">Рассчитать</button>
+            <div>
+                <label class="text-[10px] text-gray-500">Возраст</label>
+                <input type="number" id="a" value="35" class="w-full p-1.5 border rounded-lg bg-gray-50 text-xs">
+            </div>
         </div>
-    </div>
-    <div id="res" class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 hidden mb-4">
-        <h3 class="font-bold text-emerald-900 text-sm mb-1">Норма: <span id="kcal" class="text-emerald-700 text-lg">0 ккал</span></h3>
-        <p id="mac" class="text-xs text-emerald-800"></p>
-    </div>
-    <div class="bg-white p-4 rounded-2xl shadow-sm border border-emerald-100">
-        <div class="flex justify-between items-center mb-2">
-            <h3 class="font-bold text-sm text-emerald-900">💧 Вода</h3>
-            <span id="wCount" class="text-xs text-emerald-700 font-semibold">0 / 2.5 л</span>
+        <div class="mb-2">
+            <label class="text-[10px] text-gray-500">Цель</label>
+            <select id="goal" class="w-full p-1.5 border rounded-lg bg-gray-50 text-xs">
+                <option value="-15">Снижение (-15%)</option>
+                <option value="0" selected>Поддержание</option>
+                <option value="15">Набор (+15%)</option>
+            </select>
         </div>
-        <button onclick="addW()" class="w-full bg-emerald-50 text-emerald-700 border border-emerald-200 py-2 rounded-xl text-sm font-medium">+ Стакан (250 мл)</button>
+        <button onclick="calc()" class="w-full bg-emerald-600 text-white py-2 rounded-lg font-medium text-xs">Рассчитать норму</button>
     </div>
+
+    <!-- Результаты -->
+    <div id="res" class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 hidden mb-2 text-center">
+        <span class="font-bold text-emerald-900 text-sm" id="kcal">0 ккал</span>
+        <div id="mac" class="text-[11px] text-emerald-800 mt-0.5"></div>
+    </div>
+
+    <!-- Вода -->
+    <div class="bg-white p-3 rounded-xl shadow-sm border border-emerald-100">
+        <div class="flex justify-between items-center mb-1.5">
+            <span class="font-bold text-emerald-900">💧 Вода</span>
+            <span id="wCount" class="text-emerald-700 font-semibold">0 / 2.5 л</span>
+        </div>
+        <div class="flex gap-1 mb-2" id="waterGlasses"></div>
+        <button onclick="addW()" class="w-full bg-emerald-50 text-emerald-700 border border-emerald-200 py-1.5 rounded-lg font-medium text-xs">+ Стакан (250 мл)</button>
+    </div>
+
     <script>
         if (window.Telegram?.WebApp) { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); }
         let water = 0;
+        function renderWater() {
+            const container = document.getElementById('waterGlasses');
+            container.innerHTML = '';
+            for (let i = 0; i < 10; i++) {
+                const g = document.createElement('div');
+                g.className = `flex-1 h-5 rounded ${i < water ? 'bg-emerald-500' : 'bg-emerald-100'}`;
+                container.appendChild(g);
+            }
+        }
+        function addW() {
+            if(water < 10) { water++; renderWater(); document.getElementById('wCount').innerText = (water * 0.25).toFixed(2) + ' / 2.5 л'; }
+        }
         function calc() {
-            let weight = parseFloat(document.getElementById('w').value) || 75;
-            let height = parseFloat(document.getElementById('h').value) || 175;
+            let w = parseFloat(document.getElementById('w').value) || 75;
+            let h = parseFloat(document.getElementById('h').value) || 175;
+            let a = parseInt(document.getElementById('a').value) || 35;
             let g = parseFloat(document.getElementById('goal').value) || 0;
-            let kcal = Math.round(((10 * weight) + (6.25 * height) - 165) * 1.375 * (1 + g/100));
-            let p = Math.round(weight * 1.8), f = Math.round((kcal * 0.3)/9), c = Math.round((kcal - p*4 - f*9)/4);
-            document.getElementById('kcal').innerText = kcal + ' ккал';
+            let kcal = Math.round(((10 * w) + (6.25 * h) - (5 * a) + 5) * 1.375 * (1 + g/100));
+            let p = Math.round(w * 1.8), f = Math.round((kcal * 0.3)/9), c = Math.round((kcal - p*4 - f*9)/4);
+            document.getElementById('kcal').innerText = kcal + ' ккал в день';
             document.getElementById('mac').innerText = `Белки: ${p}г | Жиры: ${f}г | Углеводы: ${c}г`;
             document.getElementById('res').classList.remove('hidden');
         }
-        function addW() {
-            if(water < 10) { water++; document.getElementById('wCount').innerText = (water * 0.25).toFixed(2) + ' / 2.5 л'; }
-        }
+        renderWater();
     </script>
 </body>
 </html>
