@@ -7,89 +7,104 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #F2FBF6; color: #0A2E22; font-family: -apple-system, sans-serif; padding-bottom: 30px; }
+        :root {
+            --bg-mint: #F2FBF6;
+            --card-bg: #FFFFFF;
+            --border-mint: #D1F2DF;
+            --emerald-main: #0F9F6E;
+            --text-dark: #0A2E22;
+            --text-muted: #4A6B5D;
+        }
+        body { background-color: var(--bg-mint); color: var(--text-dark); font-family: -apple-system, sans-serif; padding-bottom: 40px; }
     </style>
 </head>
 <body class="p-3 max-w-md mx-auto text-xs">
-    <div class="text-center mb-2">
+    <div class="text-center mb-3">
         <h1 class="text-base font-bold text-emerald-800">🥗 NutriBalance</h1>
+        <p class="text-[11px] text-[var(--text-muted)]">КБЖУ, вода и микронутриенты</p>
     </div>
     
-    <!-- Параметры -->
-    <div class="bg-white p-3 rounded-xl shadow-sm border border-emerald-100 mb-2">
+    <!-- Ваши параметры -->
+    <div class="bg-white p-3 rounded-2xl shadow-sm border border-[var(--border-mint)] mb-3">
+        <h2 class="font-bold text-sm mb-2 text-emerald-900">👤 Ваши параметры</h2>
         <div class="grid grid-cols-3 gap-1.5 mb-2">
             <div>
-                <label class="text-[10px] text-gray-500">Вес (кг)</label>
-                <input type="number" id="w" value="83" class="w-full p-1.5 border rounded-lg bg-gray-50 text-xs">
+                <label class="text-[10px] text-[var(--text-muted)]">Вес (кг)</label>
+                <input type="number" id="w" value="83" class="w-full p-1.5 border border-emerald-100 rounded-xl bg-emerald-50/30 text-xs font-semibold">
             </div>
             <div>
-                <label class="text-[10px] text-gray-500">Рост</label>
-                <input type="number" id="h" value="183" class="w-full p-1.5 border rounded-lg bg-gray-50 text-xs">
+                <label class="text-[10px] text-[var(--text-muted)]">Рост (см)</label>
+                <input type="number" id="h" value="183" class="w-full p-1.5 border border-emerald-100 rounded-xl bg-emerald-50/30 text-xs font-semibold">
             </div>
             <div>
-                <label class="text-[10px] text-gray-500">Возраст</label>
-                <input type="number" id="a" value="43" class="w-full p-1.5 border rounded-lg bg-gray-50 text-xs">
+                <label class="text-[10px] text-[var(--text-muted)]">Возраст</label>
+                <input type="number" id="a" value="43" class="w-full p-1.5 border border-emerald-100 rounded-xl bg-emerald-50/30 text-xs font-semibold">
             </div>
         </div>
-        <div class="mb-2">
-            <label class="text-[10px] text-gray-500">Цель</label>
-            <select id="goal" class="w-full p-1.5 border rounded-lg bg-gray-50 text-xs">
+        <div class="mb-2.5">
+            <label class="text-[10px] text-[var(--text-muted)]">Цель</label>
+            <select id="goal" class="w-full p-1.5 border border-emerald-100 rounded-xl bg-emerald-50/30 text-xs font-semibold">
                 <option value="-15">Снижение (-15%)</option>
-                <option value="0" selected>Поддержание</option>
-                <option value="15">Набор (+15%)</option>
+                <option value="0" selected>Поддержание веса</option>
+                <option value="15">Набор массы (+15%)</option>
             </select>
         </div>
-        <button onclick="calc()" class="w-full bg-emerald-600 text-white py-2 rounded-lg font-medium text-xs">Рассчитать норму</button>
+        <button onclick="calc()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-medium text-xs shadow-sm">Рассчитать норму КБЖУ</button>
     </div>
 
-    <!-- Результаты КБЖУ -->
-    <div id="res" class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 mb-2 text-center">
-        <span class="font-bold text-emerald-900 text-sm" id="kcal">2425 ккал в день</span>
-        <div id="mac" class="text-[11px] text-emerald-800 mt-0.5">Белки: 149г | Жиры: 81г | Углеводы: 275г</div>
+    <!-- Результат КБЖУ -->
+    <div id="res" class="bg-emerald-50/80 p-3 rounded-2xl border border-emerald-200 mb-3 text-center">
+        <div class="text-[11px] text-[var(--text-muted)] mb-0.5">Суточная норма:</div>
+        <span class="font-extrabold text-emerald-900 text-base" id="kcal">2425 ккал</span>
+        <div id="mac" class="text-xs text-emerald-800 font-medium mt-1">Белки: 149г | Жиры: 81г | Углеводы: 275г</div>
     </div>
 
-    <!-- Трекер еды -->
-    <div class="bg-white p-3 rounded-xl shadow-sm border border-emerald-100 mb-2">
+    <!-- Учет еды и база продуктов -->
+    <div class="bg-white p-3 rounded-2xl shadow-sm border border-[var(--border-mint)] mb-3">
         <div class="flex justify-between items-center mb-2">
-            <span class="font-bold text-emerald-900">🍽️ Учет еды</span>
-            <span id="foodTotal" class="text-emerald-700 font-semibold">0 / 2425 ккал</span>
+            <span class="font-bold text-sm text-emerald-900">🍽️ Дневник питания</span>
+            <span id="foodTotal" class="text-xs text-emerald-700 font-semibold">0 / 2425 ккал</span>
         </div>
+        
+        <!-- Быстрый выбор из базы продуктов -->
+        <div class="mb-2">
+            <label class="text-[10px] text-[var(--text-muted)]">Быстрый выбор из базы:</label>
+            <select id="foodPreset" onchange="selectPreset()" class="w-full p-1.5 border border-emerald-100 rounded-xl bg-emerald-50/30 text-xs mb-1">
+                <option value="">-- Выберите продукт из базы --</option>
+                <option value="Овсяная каша на воде (200г)|140">Овсяная каша (200г) - 140 ккал</option>
+                <option value="Куриная грудка отварная (150г)|225">Куриная грудка (150г) - 225 ккал</option>
+                <option value="Рис отварной (150г)|195">Рис отварной (150г) - 195 ккал</option>
+                <option value="Лосось запеченный (150г)|310">Лосось запеченный (150г) - 310 ккал</option>
+                <option value="Творог 5% (180г)|210">Творог 5% (180г) - 210 ккал</option>
+                <option value="Яйцо куриное (2 шт)|145">Яйцо куриное (2 шт) - 145 ккал</option>
+                <option value="Авокадо (100г)|160">Авокадо (100г) - 160 ккал</option>
+                <option value="Грецкие орехи (30г)|195">Грецкие орехи (30г) - 195 ккал</option>
+            </select>
+        </div>
+
         <div class="flex gap-1.5 mb-2">
-            <input type="text" id="foodName" placeholder="Название блюда" class="flex-2 p-1.5 border rounded-lg bg-gray-50 text-xs">
-            <input type="number" id="foodKcal" placeholder="Ккал" class="flex-1 p-1.5 border rounded-lg bg-gray-50 text-xs">
-            <button onclick="addFood()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-medium text-xs">+</button>
+            <input type="text" id="foodName" placeholder="Блюдо" class="flex-2 p-1.5 border border-emerald-100 rounded-xl bg-emerald-50/30 text-xs">
+            <input type="number" id="foodKcal" placeholder="Ккал" class="flex-1 p-1.5 border border-emerald-100 rounded-xl bg-emerald-50/30 text-xs">
+            <button onclick="addFood()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl font-medium text-xs">+</button>
         </div>
-        <div id="foodList" class="space-y-1 max-h-28 overflow-y-auto text-[11px]">
-            <!-- Список блюд -->
-        </div>
+        <div id="foodList" class="space-y-1 max-h-32 overflow-y-auto text-[11px]"></div>
     </div>
 
     <!-- Вода -->
-    <div class="bg-white p-3 rounded-xl shadow-sm border border-emerald-100 mb-2">
-        <div class="flex justify-between items-center mb-1.5">
-            <span class="font-bold text-emerald-900">💧 Вода</span>
-            <span id="wCount" class="text-emerald-700 font-semibold">0.00 / 2.5 л</span>
+    <div class="bg-white p-3 rounded-2xl shadow-sm border border-[var(--border-mint)] mb-3">
+        <div class="flex justify-between items-center mb-2">
+            <span class="font-bold text-sm text-emerald-900">💧 Баланс воды</span>
+            <span id="wCount" class="text-xs text-emerald-700 font-semibold">0.00 / 2.5 л</span>
         </div>
-        <div class="flex gap-1 mb-2" id="waterGlasses"></div>
-        <button onclick="addW()" class="w-full bg-emerald-50 text-emerald-700 border border-emerald-200 py-1.5 rounded-lg font-medium text-xs">+ Стакан (250 мл)</button>
+        <div class="flex gap-1 mb-2.5" id="waterGlasses"></div>
+        <button onclick="addW()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 py-1.5 rounded-xl font-medium text-xs">+ Стакан (250 мл)</button>
     </div>
 
-    <!-- Витамины -->
-    <div class="bg-white p-3 rounded-xl shadow-sm border border-emerald-100">
-        <h3 class="font-bold text-emerald-900 mb-2">💊 Базовый набор витаминов</h3>
-        <div class="space-y-1.5 text-[11px]">
-            <div class="flex justify-between p-1.5 bg-emerald-50/50 rounded-lg">
-                <span class="font-medium text-emerald-900">Витамин D3</span>
-                <span class="text-emerald-700">2000 МЕ (утром)</span>
-            </div>
-            <div class="flex justify-between p-1.5 bg-emerald-50/50 rounded-lg">
-                <span class="font-medium text-emerald-900">Омега-3</span>
-                <span class="text-emerald-700">1000 мг (с едой)</span>
-            </div>
-            <div class="flex justify-between p-1.5 bg-emerald-50/50 rounded-lg">
-                <span class="font-medium text-emerald-900">Магний (глицинат)</span>
-                <span class="text-emerald-700">400 мг (вечером)</span>
-            </div>
+    <!-- Трекер витаминов и минералов -->
+    <div class="bg-white p-3 rounded-2xl shadow-sm border border-[var(--border-mint)]">
+        <h3 class="font-bold text-sm text-emerald-900 mb-2">💊 Трекер витаминов и минералов</h3>
+        <div class="space-y-1.5 text-[11px]" id="vitaminsList">
+            <!-- Динамический список витаминов с чекбоксами -->
         </div>
     </div>
 
@@ -98,19 +113,66 @@
 
         let water = parseInt(localStorage.getItem('nutri_water')) || 0;
         let foodItems = JSON.parse(localStorage.getItem('nutri_food')) || [];
+        let vitaminsState = JSON.parse(localStorage.getItem('nutri_vitamins')) || {
+            d3: false, omega: false, magnesium: false, zinc: false
+        };
         let currentTargetKcal = 2425;
 
+        // Загрузка параметров
         if(localStorage.getItem('nutri_w')) document.getElementById('w').value = localStorage.getItem('nutri_w');
         if(localStorage.getItem('nutri_h')) document.getElementById('h').value = localStorage.getItem('nutri_h');
         if(localStorage.getItem('nutri_a')) document.getElementById('a').value = localStorage.getItem('nutri_a');
         if(localStorage.getItem('nutri_goal')) document.getElementById('goal').value = localStorage.getItem('nutri_goal');
+
+        const vitaminsMeta = [
+            { id: 'd3', name: 'Витамин D3', desc: '2000 МЕ (утром с жирами)' },
+            { id: 'omega', name: 'Омега-3', desc: '1000 мг (во время еды)' },
+            { id: 'magnesium', name: 'Магний (глицинат)', desc: '400 мг (вечером)' },
+            { id: 'zinc', name: 'Цинк', desc: '15 мг (после еды)' }
+        ];
+
+        function renderVitamins() {
+            const container = document.getElementById('vitaminsList');
+            container.innerHTML = '';
+            vitaminsMeta.forEach(v => {
+                const checked = vitaminsState[v.id] ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-gray-300 bg-gray-50';
+                const row = document.createElement('div');
+                row.className = 'flex justify-between items-center p-2 bg-emerald-50/40 rounded-xl cursor-pointer';
+                row.onclick = () => toggleVit(v.id);
+                row.innerHTML = `
+                    <div>
+                        <span class="font-medium text-emerald-900">${v.name}</span>
+                        <div class="text-[10px] text-[var(--text-muted)]">${v.desc}</div>
+                    </div>
+                    <div class="w-5 h-5 rounded-lg border flex items-center justify-center font-bold text-xs ${checked}">
+                        ${vitaminsState[v.id] ? '✓' : ''}
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function toggleVit(id) {
+            vitaminsState[id] = !vitaminsState[id];
+            localStorage.setItem('nutri_vitamins', JSON.stringify(vitaminsState));
+            renderVitamins();
+        }
+
+        function selectPreset() {
+            const sel = document.getElementById('foodPreset');
+            if(!sel.value) return;
+            const [name, kcal] = sel.value.split('|');
+            document.getElementById('foodName').value = name;
+            document.getElementById('foodKcal').value = kcal;
+            sel.value = "";
+        }
 
         function renderWater() {
             const container = document.getElementById('waterGlasses');
             container.innerHTML = '';
             for (let i = 0; i < 10; i++) {
                 const g = document.createElement('div');
-                g.className = `flex-1 h-5 rounded ${i < water ? 'bg-emerald-500' : 'bg-emerald-100'}`;
+                g.className = `flex-1 h-5 rounded-lg transition-all ${i < water ? 'bg-emerald-500 shadow-sm' : 'bg-emerald-100/70'}`;
                 container.appendChild(g);
             }
             document.getElementById('wCount').innerText = `${(water * 0.25).toFixed(2)} / 2.5 л`;
@@ -131,8 +193,8 @@
             foodItems.forEach((item, index) => {
                 totalEaten += item.kcal;
                 const div = document.createElement('div');
-                div.className = 'flex justify-between items-center p-1 bg-gray-50 rounded-lg';
-                div.innerHTML = `<span>${item.name}</span><div class="flex items-center gap-2"><span class="font-semibold text-emerald-800">${item.kcal} ккал</span><button onclick="removeFood(${index})" class="text-red-400 font-bold px-1">×</button></div>`;
+                div.className = 'flex justify-between items-center p-1.5 bg-emerald-50/30 rounded-xl';
+                div.innerHTML = `<span class="font-medium text-emerald-900">${item.name}</span><div class="flex items-center gap-2"><span class="font-semibold text-emerald-800">${item.kcal} ккал</span><button onclick="removeFood(${index})" class="text-red-400 hover:text-red-600 font-bold px-1">×</button></div>`;
                 list.appendChild(div);
             });
             document.getElementById('foodTotal').innerText = `${totalEaten} / ${currentTargetKcal} ккал`;
@@ -168,6 +230,7 @@
             localStorage.setItem('nutri_a', a);
             localStorage.setItem('nutri_goal', g);
 
+            // Формула Миффлина-Сан Жеора для мужчин
             currentTargetKcal = Math.round(((10 * w) + (6.25 * h) - (5 * a) + 5) * 1.375 * (1 + g/100));
             let p = Math.round(w * 1.8), f = Math.round((currentTargetKcal * 0.3)/9), c = Math.round((currentTargetKcal - p*4 - f*9)/4);
             
@@ -178,6 +241,7 @@
         }
 
         renderWater();
+        renderVitamins();
         calc();
     </script>
 </body>
