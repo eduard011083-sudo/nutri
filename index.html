@@ -3,165 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NutriBalance – Полный калькулятор рациона и витаминов</title>
+    <title>NutriBalance</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --bg-mint: #F2FBF6;
-            --card-bg: #FFFFFF;
-            --border-mint: #D1F2DF;
-            --emerald-main: #0F9F6E;
-            --text-dark: #0A2E22;
-            --text-muted: #4A6B5D;
-        }
-        body {
-            background-color: var(--bg-mint);
-            color: var(--text-dark);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            padding-bottom: 90px;
-        }
-        .mint-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-mint);
-            border-radius: 1.25rem;
-            box-shadow: 0 4px 12px rgba(15, 159, 110, 0.04);
-        }
+        body { background-color: #F2FBF6; color: #0A2E22; font-family: -apple-system, sans-serif; padding-bottom: 50px; }
     </style>
 </head>
 <body class="p-4 max-w-md mx-auto">
-    <div id="app" class="space-y-4">
-        <!-- Шапка -->
-        <header class="text-center py-2">
-            <h1 class="text-2xl font-extrabold text-emerald-800 tracking-tight">🥗 NutriBalance</h1>
-            <p class="text-xs text-emerald-700 font-medium mt-0.5">КБЖУ, вода и баланс микронутриентов</p>
-        </header>
-
-        <!-- Блок параметров -->
-        <div class="mint-card p-4">
-            <h2 class="font-bold text-base mb-3 flex items-center gap-2 text-emerald-900">
-                <span>👤</span> Ваши параметры
-            </h2>
-            <div class="space-y-3">
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="text-xs text-[var(--text-muted)] font-medium">Вес (кг)</label>
-                        <input type="number" id="weight" value="75" class="w-full p-2.5 border border-emerald-200 rounded-xl bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    </div>
-                    <div>
-                        <label class="text-xs text-[var(--text-muted)] font-medium">Рост (см)</label>
-                        <input type="number" id="height" value="175" class="w-full p-2.5 border border-emerald-200 rounded-xl bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    </div>
+    <div class="text-center mb-4">
+        <h1 class="text-xl font-bold text-emerald-800">🥗 NutriBalance</h1>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-emerald-100 mb-4">
+        <h2 class="font-semibold text-sm mb-2 text-emerald-900">👤 Ваши параметры</h2>
+        <div class="space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="text-xs text-gray-500">Вес (кг)</label>
+                    <input type="number" id="w" value="75" class="w-full p-2 border rounded-xl bg-gray-50 text-sm">
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="text-xs text-[var(--text-muted)] font-medium">Возраст</label>
-                        <input type="number" id="age" value="35" class="w-full p-2.5 border border-emerald-200 rounded-xl bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    </div>
-                    <div>
-                        <label class="text-xs text-[var(--text-muted)] font-medium">Цель</label>
-                        <select id="goal" class="w-full p-2.5 border border-emerald-200 rounded-xl bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                            <option value="-15">Снижение (-15%)</option>
-                            <option value="0" selected>Поддержание</option>
-                            <option value="15">Набор (+15%)</option>
-                        </select>
-                    </div>
-                </div>
-                <button onclick="calculate()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold shadow-md hover:bg-emerald-700 transition active:scale-[0.99]">
-                    Рассчитать норму КБЖУ
-                </button>
-            </div>
-        </div>
-
-        <!-- Результаты КБЖУ -->
-        <div id="result" class="mint-card p-4 bg-gradient-to-br from-emerald-50 to-white hidden">
-            <h3 class="font-bold text-emerald-900 text-sm mb-2">📊 Ваша суточная норма:</h3>
-            <div class="text-3xl font-black text-emerald-700 mb-2" id="kcalResult">2200 ккал</div>
-            <div class="grid grid-cols-3 gap-2 text-center">
-                <div class="bg-emerald-100/50 p-2 rounded-xl">
-                    <div class="text-xs text-emerald-800 font-medium">Белки</div>
-                    <div id="protein" class="font-bold text-emerald-900 text-sm">120 г</div>
-                </div>
-                <div class="bg-emerald-100/50 p-2 rounded-xl">
-                    <div class="text-xs text-emerald-800 font-medium">Жиры</div>
-                    <div id="fat" class="font-bold text-emerald-900 text-sm">75 г</div>
-                </div>
-                <div class="bg-emerald-100/50 p-2 rounded-xl">
-                    <div class="text-xs text-emerald-800 font-medium">Углеводы</div>
-                    <div id="carbs" class="font-bold text-emerald-900 text-sm">250 г</div>
+                <div>
+                    <label class="text-xs text-gray-500">Рост (см)</label>
+                    <input type="number" id="h" value="175" class="w-full p-2 border rounded-xl bg-gray-50 text-sm">
                 </div>
             </div>
-        </div>
-
-        <!-- Трекер воды -->
-        <div class="mint-card p-4">
-            <div class="flex justify-between items-center mb-2">
-                <h3 class="font-bold text-base text-emerald-900">💧 Баланс воды</h3>
-                <span id="waterCount" class="text-sm font-semibold text-emerald-700">0 / 2.5 л</span>
+            <div>
+                <label class="text-xs text-gray-500">Цель</label>
+                <select id="goal" class="w-full p-2 border rounded-xl bg-gray-50 text-sm">
+                    <option value="-15">Снижение (-15%)</option>
+                    <option value="0" selected>Поддержание</option>
+                    <option value="15">Набор (+15%)</option>
+                </select>
             </div>
-            <div class="flex gap-1.5 mb-3" id="waterGlasses">
-                <!-- Генерируется скриптом -->
-            </div>
-            <button onclick="addWater()" class="w-full bg-emerald-50 text-emerald-700 border border-emerald-200 py-2 rounded-xl font-medium text-sm hover:bg-emerald-100 transition">
-                + Добавить стакан (250 мл)
-            </button>
+            <button onclick="calc()" class="w-full bg-emerald-600 text-white py-2.5 rounded-xl font-medium text-sm">Рассчитать</button>
         </div>
     </div>
-
+    <div id="res" class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 hidden mb-4">
+        <h3 class="font-bold text-emerald-900 text-sm mb-1">Норма: <span id="kcal" class="text-emerald-700 text-lg">0 ккал</span></h3>
+        <p id="mac" class="text-xs text-emerald-800"></p>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-emerald-100">
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="font-bold text-sm text-emerald-900">💧 Вода</h3>
+            <span id="wCount" class="text-xs text-emerald-700 font-semibold">0 / 2.5 л</span>
+        </div>
+        <button onclick="addW()" class="w-full bg-emerald-50 text-emerald-700 border border-emerald-200 py-2 rounded-xl text-sm font-medium">+ Стакан (250 мл)</button>
+    </div>
     <script>
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand();
+        if (window.Telegram?.WebApp) { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); }
+        let water = 0;
+        function calc() {
+            let weight = parseFloat(document.getElementById('w').value) || 75;
+            let height = parseFloat(document.getElementById('h').value) || 175;
+            let g = parseFloat(document.getElementById('goal').value) || 0;
+            let kcal = Math.round(((10 * weight) + (6.25 * height) - 165) * 1.375 * (1 + g/100));
+            let p = Math.round(weight * 1.8), f = Math.round((kcal * 0.3)/9), c = Math.round((kcal - p*4 - f*9)/4);
+            document.getElementById('kcal').innerText = kcal + ' ккал';
+            document.getElementById('mac').innerText = `Белки: ${p}г | Жиры: ${f}г | Углеводы: ${c}г`;
+            document.getElementById('res').classList.remove('hidden');
         }
-
-        let waterDrank = 0;
-        const totalWaterGlasses = 10;
-
-        function renderWater() {
-            const container = document.getElementById('waterGlasses');
-            container.innerHTML = '';
-            for (let i = 0; i < totalWaterGlasses; i++) {
-                const glass = document.createElement('div');
-                glass.className = `flex-1 h-8 rounded-lg transition-all ${i < waterDrank ? 'bg-emerald-500 shadow-sm' : 'bg-emerald-100/60'}`;
-                container.appendChild(glass);
-            }
-            document.getElementById('waterCount').innerText = `${(waterDrank * 0.25).toFixed(2)} / 2.5 л`;
+        function addW() {
+            if(water < 10) { water++; document.getElementById('wCount').innerText = (water * 0.25).toFixed(2) + ' / 2.5 л'; }
         }
-
-        function addWater() {
-            if (waterDrank < totalWaterGlasses) {
-                waterDrank++;
-                renderWater();
-                if (window.Telegram?.WebApp?.HapticFeedback) {
-                    window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-                }
-            }
-        }
-
-        function calculate() {
-            const w = parseFloat(document.getElementById('weight').value) || 75;
-            const h = parseFloat(document.getElementById('height').value) || 175;
-            const a = parseInt(document.getElementById('age').value) || 35;
-            const goal = parseFloat(document.getElementById('goal').value) || 0;
-
-            let bmr = (10 * w) + (6.25 * h) - (5 * a) + 5;
-            let targetKcal = Math.round(bmr * 1.375 * (1 + goal / 100));
-            let p = Math.round(w * 1.8);
-            let f = Math.round((targetKcal * 0.3) / 9);
-            let c = Math.round((targetKcal - (p * 4) - (f * 9)) / 4);
-
-            document.getElementById('kcalResult').innerText = targetKcal + ' ккал';
-            document.getElementById('protein').innerText = p + ' г';
-            document.getElementById('fat').innerText = f + ' г';
-            document.getElementById('carbs').innerText = c + ' г';
-            document.getElementById('result').classList.remove('hidden');
-
-            if (window.Telegram?.WebApp?.HapticFeedback) {
-                window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-            }
-        }
-
-        renderWater();
     </script>
 </body>
 </html>
