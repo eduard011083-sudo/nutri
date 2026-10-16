@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru" id="htmlRoot">
 <head>
@@ -23,124 +24,150 @@
             --text-dark: #E2F8EE;
             --text-muted: #8FAEA2;
         }
-        body { background-color: var(--bg-mint); color: var(--text-dark); font-family: -apple-system, sans-serif; padding-bottom: 40px; transition: background 0.3s, color 0.3s; }
+        body { background-color: var(--bg-mint); color: var(--text-dark); font-family: -apple-system, sans-serif; padding-bottom: 70px; transition: background 0.3s, color 0.3s; }
         .app-card { background-color: var(--card-bg); border-color: var(--border-mint); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
 <body class="p-3 max-w-md mx-auto text-xs">
+    <!-- Шапка приложения -->
     <div class="flex justify-between items-center mb-3">
         <div>
             <h1 class="text-base font-bold text-emerald-600 dark:text-emerald-400">🥗 NutriBalance</h1>
-            <p class="text-[11px] text-[var(--text-muted)]">КБЖУ, вода и микронутриенты</p>
+            <p class="text-[11px] text-[var(--text-muted)]">Многостраничный трекер здоровья</p>
         </div>
         <button onclick="toggleTheme()" class="px-2.5 py-1.5 rounded-xl border border-[var(--border-mint)] app-card font-medium text-[var(--text-dark)]">🌙 Тон</button>
     </div>
-    
-    <!-- Умные рекомендации -->
-    <div id="smartTip" class="app-card p-2.5 rounded-2xl border mb-3 text-[11px] font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50/50 dark:bg-emerald-950/30">
-        💡 Заполните параметры для персональных подсказок.
+
+    <!-- ВКЛАДКА 1: ГЛАВНАЯ -->
+    <div id="tab-home" class="tab-content active space-y-3">
+        <!-- Умные рекомендации -->
+        <div id="smartTip" class="app-card p-2.5 rounded-2xl border text-[11px] font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50/50 dark:bg-emerald-950/30">
+            💡 Заполните параметры для персональных подсказок.
+        </div>
+
+        <!-- Ваши параметры -->
+        <div class="app-card p-3 rounded-2xl border shadow-sm">
+            <h2 class="font-bold text-sm mb-2 text-[var(--text-dark)]">👤 Ваши параметры</h2>
+            <div class="grid grid-cols-3 gap-1.5 mb-2">
+                <div>
+                    <label class="text-[10px] text-[var(--text-muted)]">Вес (кг)</label>
+                    <input type="number" id="w" value="83" class="w-full p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs font-semibold text-[var(--text-dark)]">
+                </div>
+                <div>
+                    <label class="text-[10px] text-[var(--text-muted)]">Рост (см)</label>
+                    <input type="number" id="h" value="183" class="w-full p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs font-semibold text-[var(--text-dark)]">
+                </div>
+                <div>
+                    <label class="text-[10px] text-[var(--text-muted)]">Возраст</label>
+                    <input type="number" id="a" value="43" class="w-full p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs font-semibold text-[var(--text-dark)]">
+                </div>
+            </div>
+            <div class="mb-2.5">
+                <label class="text-[10px] text-[var(--text-muted)]">Цель</label>
+                <select id="goal" class="w-full p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs font-semibold text-[var(--text-dark)]">
+                    <option value="-15">Снижение (-15%)</option>
+                    <option value="0" selected>Поддержание веса</option>
+                    <option value="15">Набор массы (+15%)</option>
+                </select>
+            </div>
+            <button onclick="calc()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-medium text-xs shadow-sm">Рассчитать норму КБЖУ</button>
+        </div>
+
+        <!-- Результат КБЖУ -->
+        <div id="res" class="app-card p-3 rounded-2xl border text-center shadow-sm">
+            <div class="text-[11px] text-[var(--text-muted)] mb-0.5">Суточная норма:</div>
+            <span class="font-extrabold text-emerald-600 dark:text-emerald-400 text-base" id="kcal">2425 ккал</span>
+            <div id="mac" class="text-xs text-[var(--text-muted)] font-medium mt-1">Белки: 149г | Жиры: 81г | Углеводы: 275г</div>
+        </div>
     </div>
 
-    <!-- Ваши параметры -->
-    <div class="app-card p-3 rounded-2xl border shadow-sm mb-3">
-        <h2 class="font-bold text-sm mb-2 text-[var(--text-dark)]">👤 Ваши параметры</h2>
-        <div class="grid grid-cols-3 gap-1.5 mb-2">
-            <div>
-                <label class="text-[10px] text-[var(--text-muted)]">Вес (кг)</label>
-                <input type="number" id="w" value="83" class="w-full p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs font-semibold text-[var(--text-dark)]">
+    <!-- ВКЛАДКА 2: ДНЕВНИК ПИТАНИЯ -->
+    <div id="tab-food" class="tab-content space-y-3">
+        <div class="app-card p-3 rounded-2xl border shadow-sm">
+            <div class="flex justify-between items-center mb-2">
+                <span class="font-bold text-sm text-[var(--text-dark)]">🍽️ Дневник питания</span>
+                <span id="foodTotal" class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">0 / 2425 ккал</span>
             </div>
-            <div>
-                <label class="text-[10px] text-[var(--text-muted)]">Рост (см)</label>
-                <input type="number" id="h" value="183" class="w-full p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs font-semibold text-[var(--text-dark)]">
-            </div>
-            <div>
-                <label class="text-[10px] text-[var(--text-muted)]">Возраст</label>
-                <input type="number" id="a" value="43" class="w-full p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs font-semibold text-[var(--text-dark)]">
-            </div>
-        </div>
-        <div class="mb-2.5">
-            <label class="text-[10px] text-[var(--text-muted)]">Цель</label>
-            <select id="goal" class="w-full p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs font-semibold text-[var(--text-dark)]">
-                <option value="-15">Снижение (-15%)</option>
-                <option value="0" selected>Поддержание веса</option>
-                <option value="15">Набор массы (+15%)</option>
-            </select>
-        </div>
-        <button onclick="calc()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-medium text-xs shadow-sm">Рассчитать норму КБЖУ</button>
-    </div>
-
-    <!-- Результат КБЖУ -->
-    <div id="res" class="app-card p-3 rounded-2xl border mb-3 text-center shadow-sm">
-        <div class="text-[11px] text-[var(--text-muted)] mb-0.5">Суточная норма:</div>
-        <span class="font-extrabold text-emerald-600 dark:text-emerald-400 text-base" id="kcal">2425 ккал</span>
-        <div id="mac" class="text-xs text-[var(--text-muted)] font-medium mt-1">Белки: 149г | Жиры: 81г | Углеводы: 275г</div>
-    </div>
-
-    <!-- Учет еды и своя база -->
-    <div class="app-card p-3 rounded-2xl border shadow-sm mb-3">
-        <div class="flex justify-between items-center mb-2">
-            <span class="font-bold text-sm text-[var(--text-dark)]">🍽️ Дневник питания</span>
-            <span id="foodTotal" class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">0 / 2425 ккал</span>
-        </div>
-        
-        <div class="mb-2">
-            <label class="text-[10px] text-[var(--text-muted)]">Выбор из базы:</label>
-            <select id="foodPreset" onchange="selectPreset()" class="w-full p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs mb-1 text-[var(--text-dark)]">
-                <option value="">-- Выберите продукт --</option>
-                <optgroup label="Основные блюда и гарниры">
+            
+            <div class="mb-2">
+                <label class="text-[10px] text-[var(--text-muted)]">Быстрый выбор из базы:</label>
+                <select id="foodPreset" onchange="selectPreset()" class="w-full p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs mb-1 text-[var(--text-dark)]">
+                    <option value="">-- Выберите продукт --</option>
                     <option value="Овсяная каша (200г)|140">Овсяная каша (200г) — 140 ккал</option>
                     <option value="Куриная грудка (150г)|225">Куриная грудка (150г) — 225 ккал</option>
                     <option value="Рис отварной (150г)|195">Рис отварной (150г) — 195 ккал</option>
                     <option value="Лосось запеченный (150г)|310">Лосось запеченный (150г) — 310 ккал</option>
                     <option value="Творог 5% (180г)|210">Творог 5% (180г) — 210 ккал</option>
-                </optgroup>
-            </select>
-        </div>
+                </select>
+            </div>
 
-        <div class="flex gap-1.5 mb-2">
-            <input type="text" id="foodName" placeholder="Блюдо" class="flex-2 p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs text-[var(--text-dark)]">
-            <input type="number" id="foodKcal" placeholder="Ккал" class="flex-1 p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs text-[var(--text-dark)]">
-            <button onclick="addFood()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl font-medium text-xs">+</button>
-        </div>
-        
-        <!-- Добавить свой продукт в базу -->
-        <div class="border-t border-[var(--border-mint)] pt-2 mt-2">
-            <details class="text-[11px]">
-                <summary class="cursor-pointer text-[var(--text-muted)] font-medium">➕ Добавить свой продукт в базу</summary>
-                <div class="flex gap-1.5 mt-1.5">
-                    <input type="text" id="customName" placeholder="Название" class="flex-2 p-1 border border-[var(--border-mint)] rounded-lg bg-emerald-50/20 dark:bg-emerald-900/10 text-xs text-[var(--text-dark)]">
-                    <input type="number" id="customKcal" placeholder="Ккал/100г" class="flex-1 p-1 border border-[var(--border-mint)] rounded-lg bg-emerald-50/20 dark:bg-emerald-900/10 text-xs text-[var(--text-dark)]">
-                    <button onclick="saveCustomProduct()" class="bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-xs">Сохр.</button>
-                </div>
-            </details>
-        </div>
+            <div class="flex gap-1.5 mb-2">
+                <input type="text" id="foodName" placeholder="Блюдо" class="flex-2 p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs text-[var(--text-dark)]">
+                <input type="number" id="foodKcal" placeholder="Ккал" class="flex-1 p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs text-[var(--text-dark)]">
+                <button onclick="addFood()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl font-medium text-xs">+</button>
+            </div>
 
-        <div id="foodList" class="space-y-1 max-h-32 overflow-y-auto text-[11px] mt-2"></div>
-    </div>
-
-    <!-- Вода -->
-    <div class="app-card p-3 rounded-2xl border shadow-sm mb-3">
-        <div class="flex justify-between items-center mb-2">
-            <span class="font-bold text-sm text-[var(--text-dark)]">💧 Баланс воды</span>
-            <span id="wCount" class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">0.00 / 2.5 л</span>
-        </div>
-        <div class="flex gap-1 mb-2.5" id="waterGlasses"></div>
-        <div class="flex gap-2">
-            <button onclick="addW()" class="flex-1 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-[var(--border-mint)] py-1.5 rounded-xl font-medium text-xs">+ Стакан (250 мл)</button>
-            <button onclick="resetDay()" class="px-3 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 py-1.5 rounded-xl font-medium text-xs">Сбросить день</button>
+            <div id="foodList" class="space-y-1 max-h-48 overflow-y-auto text-[11px] mt-2"></div>
+            
+            <button onclick="resetDay()" class="w-full mt-3 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 py-1.5 rounded-xl font-medium text-xs">Сбросить день</button>
         </div>
     </div>
 
-    <!-- Витамины -->
-    <div class="app-card p-3 rounded-2xl border shadow-sm mb-3">
-        <h3 class="font-bold text-sm text-[var(--text-dark)] mb-2">💊 Трекер витаминов и минералов</h3>
-        <div class="space-y-1.5 text-[11px]" id="vitaminsList"></div>
+    <!-- ВКЛАДКА 3: ВОДА И ВИТАМИНЫ -->
+    <div id="tab-water" class="tab-content space-y-3">
+        <!-- Вода -->
+        <div class="app-card p-3 rounded-2xl border shadow-sm">
+            <div class="flex justify-between items-center mb-2">
+                <span class="font-bold text-sm text-[var(--text-dark)]">💧 Баланс воды</span>
+                <span id="wCount" class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">0.00 / 2.5 л</span>
+            </div>
+            <div class="flex gap-1 mb-2.5" id="waterGlasses"></div>
+            <button onclick="addW()" class="w-full bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-[var(--border-mint)] py-1.5 rounded-xl font-medium text-xs">+ Стакан (250 мл)</button>
+        </div>
+
+        <!-- Витамины -->
+        <div class="app-card p-3 rounded-2xl border shadow-sm">
+            <h3 class="font-bold text-sm text-[var(--text-dark)] mb-2">💊 Трекер витаминов и минералов</h3>
+            <div class="space-y-1.5 text-[11px]" id="vitaminsList"></div>
+        </div>
     </div>
 
-    <!-- История за 7 дней -->
-    <div class="app-card p-3 rounded-2xl border shadow-sm">
-        <h3 class="font-bold text-sm text-[var(--text-dark)] mb-2">📅 История калорий (последние дни)</h3>
-        <div id="historyList" class="space-y-1 text-[11px] text-[var(--text-muted)]"></div>
+    <!-- ВКЛАДКА 4: ИСТОРИЯ И БАЗА -->
+    <div id="tab-stats" class="tab-content space-y-3">
+        <!-- Своя база продуктов -->
+        <div class="app-card p-3 rounded-2xl border shadow-sm">
+            <h3 class="font-bold text-sm text-[var(--text-dark)] mb-2">📚 Свои продукты в базе</h3>
+            <div class="flex gap-1.5 mb-2">
+                <input type="text" id="customName" placeholder="Название продукта" class="flex-2 p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs text-[var(--text-dark)]">
+                <input type="number" id="customKcal" placeholder="Ккал/100г" class="flex-1 p-1.5 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs text-[var(--text-dark)]">
+                <button onclick="saveCustomProduct()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs">Сохр.</button>
+            </div>
+            <div id="customList" class="space-y-1 max-h-28 overflow-y-auto text-[11px]"></div>
+        </div>
+
+        <!-- История за 7 дней -->
+        <div class="app-card p-3 rounded-2xl border shadow-sm">
+            <h3 class="font-bold text-sm text-[var(--text-dark)] mb-2">📅 История калорий</h3>
+            <div id="historyList" class="space-y-1 text-[11px] text-[var(--text-muted)]"></div>
+        </div>
+    </div>
+
+    <!-- Нижняя панель навигации (Многостраничное меню) -->
+    <div class="fixed bottom-0 left-0 right-0 app-card border-t border-[var(--border-mint)] p-2 flex justify-around max-w-md mx-auto z-50 shadow-lg">
+        <button onclick="switchTab('home')" id="btn-home" class="flex flex-col items-center text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
+            <span class="text-base">🏠</span>Главная
+        </button>
+        <button onclick="switchTab('food')" id="btn-food" class="flex flex-col items-center text-[var(--text-muted)] font-medium text-[10px]">
+            <span class="text-base">🍽️</span>Дневник
+        </button>
+        <button onclick="switchTab('water')" id="btn-water" class="flex flex-col items-center text-[var(--text-muted)] font-medium text-[10px]">
+            <span class="text-base">💧</span>Вода & Витамины
+        </button>
+        <button onclick="switchTab('stats')" id="btn-stats" class="flex flex-col items-center text-[var(--text-muted)] font-medium text-[10px]">
+            <span class="text-base">📊</span>База & Архив
+        </button>
     </div>
 
     <script>
@@ -154,6 +181,21 @@
             localStorage.setItem('nutri_dark', isDark);
             if(isDark) document.getElementById('htmlRoot').classList.add('dark');
             else document.getElementById('htmlRoot').classList.remove('dark');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+
+            ['home', 'food', 'water', 'stats'].forEach(id => {
+                const btn = document.getElementById('btn-' + id);
+                if(id === tabId) {
+                    btn.className = "flex flex-col items-center text-emerald-600 dark:text-emerald-400 font-bold text-[10px]";
+                } else {
+                    btn.className = "flex flex-col items-center text-[var(--text-muted)] font-medium text-[10px]";
+                }
+            });
+            window.scrollTo(0,0);
         }
 
         let water = parseInt(localStorage.getItem('nutri_water')) || 0;
@@ -173,12 +215,21 @@
             let html = defaultPreset;
             if(customProducts.length > 0) {
                 html += `<optgroup label="Мои продукты">`;
-                customProducts.forEach(p => {
+                customProducts.forEach((p, idx) => {
                     html += `<option value="${p.name}|${p.kcal}">${p.name} (100г) — ${p.kcal} ккал</option>`;
                 });
                 html += `</optgroup>`;
             }
             document.getElementById('foodPreset').innerHTML = html;
+            
+            const customListDiv = document.getElementById('customList');
+            customListDiv.innerHTML = '';
+            customProducts.forEach((p, idx) => {
+                const row = document.createElement('div');
+                row.className = 'flex justify-between items-center p-1 bg-emerald-50/20 dark:bg-emerald-950/20 rounded-lg';
+                row.innerHTML = `<span>${p.name} — ${p.kcal} ккал/100г</span><button onclick="removeCustom(${idx})" class="text-red-400 font-bold px-1">×</button>`;
+                customListDiv.appendChild(row);
+            });
         }
 
         function saveCustomProduct() {
@@ -190,8 +241,13 @@
                 document.getElementById('customName').value = '';
                 document.getElementById('customKcal').value = '';
                 updatePresetSelect();
-                alert('Продукт успешно добавлен в базу!');
             }
+        }
+
+        function removeCustom(index) {
+            customProducts.splice(index, 1);
+            localStorage.setItem('nutri_custom_base', JSON.stringify(customProducts));
+            updatePresetSelect();
         }
 
         const vitaminsMeta = [
@@ -271,7 +327,6 @@
             document.getElementById('foodTotal').innerText = `${totalEaten} / ${currentTargetKcal} ккал`;
             localStorage.setItem('nutri_food', JSON.stringify(foodItems));
             
-            // Сохраняем в историю текущего дня
             const todayStr = new Date().toISOString().slice(0, 10);
             historyData[todayStr] = totalEaten;
             localStorage.setItem('nutri_history', JSON.stringify(historyData));
@@ -314,7 +369,7 @@
             let waterL = water * 0.25;
 
             if(waterL < 2.0) {
-                tip.innerHTML = `💡 <b>Совет:</b> Вы выпили ${waterL}л воды. Рекомендуем добавить еще ${(2.5 - waterL).toFixed(2)}л до суточной нормы.`;
+                tip.innerHTML = `💡 <b>Совет:</b> Вы выпили ${waterL}л воды. Рекомендуем добавить еще ${(2.5 - waterL).toFixed(2)}л до нормы.`;
             } else if(totalEaten < currentTargetKcal * 0.7) {
                 tip.innerHTML = `💡 <b>Совет:</b> Вы набрали ${totalEaten} ккал из ${currentTargetKcal}. Не забывайте про полноценный прием пищи!`;
             } else {
