@@ -237,13 +237,13 @@
             <div id="customList" class="space-y-1.5 max-h-44 overflow-y-auto text-[11px]"></div>
         </div>
 
-        <!-- История за 7 дней с цветовой индикацией -->
+        <!-- История за 30 дней с прокруткой и индикацией -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-2">
-                <h3 class="font-bold text-sm text-[var(--text-dark)]">📅 Архив калорий (7 дней)</h3>
+                <h3 class="font-bold text-sm text-[var(--text-dark)]">📅 Архив калорий (30 дней)</h3>
                 <span class="text-[10px] text-[var(--text-muted)]">🟢 норма | 🟡 мало | 🔴 перебор</span>
             </div>
-            <div id="historyList" class="space-y-1.5 text-[11px]"></div>
+            <div id="historyList" class="space-y-1.5 text-[11px] max-h-60 overflow-y-auto pr-1"></div>
         </div>
     </div>
 
@@ -347,6 +347,32 @@
         let waterTargetL = 2.5;
         let currentMealCat = 'Завтрак';
         let selectedBaseKcal100 = 0;
+
+        // ПРОВЕРКА СМЕНЫ ДНЯ (Автоматическое обнуление в 00:00 или при новом дне)
+        function checkDateRollover() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const lastActiveDate = localStorage.getItem('nutri_last_date');
+
+            if (lastActiveDate && lastActiveDate !== todayStr) {
+                // Если наступил новый день, сохраняем итог вчерашнего в историю
+                const prevTotal = foodItems.reduce((acc, item) => acc + Number(item.kcal), 0);
+                historyData[lastActiveDate] = prevTotal;
+                
+                // Обнуляем показатели текущего дня
+                water = 0;
+                foodItems = [];
+                vitaminsState = { d3: false, c: false, magnesium: false, zinc: false };
+                
+                localStorage.setItem('nutri_water', 0);
+                localStorage.setItem('nutri_food', JSON.stringify([]));
+                localStorage.setItem('nutri_vitamins', JSON.stringify(vitaminsState));
+                localStorage.setItem('nutri_history', JSON.stringify(historyData));
+            }
+            localStorage.setItem('nutri_last_date', todayStr);
+        }
+
+        // Запуск проверки смены дня сразу при старте
+        checkDateRollover();
 
         // Загрузка сохраненных параметров тела
         if (localStorage.getItem('nutri_w')) document.getElementById('w').value = localStorage.getItem('nutri_w');
@@ -667,10 +693,11 @@
             }
         }
 
+        // Архив расширен до 30 дней
         function renderHistory() {
             const container = document.getElementById('historyList');
             container.innerHTML = '';
-            const dates = Object.keys(historyData).sort().reverse().slice(0, 7);
+            const dates = Object.keys(historyData).sort().reverse().slice(0, 30);
             if (dates.length === 0) {
                 container.innerHTML = '<div class="text-[var(--text-muted)]">Нет сохраненных записей.</div>';
                 return;
