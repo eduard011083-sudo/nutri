@@ -50,7 +50,7 @@
         <button onclick="toggleTheme()" class="px-3 py-1.5 rounded-xl border border-[var(--border-mint)] app-card font-medium text-[var(--text-dark)] shadow-sm active:scale-95 transition">🌙 Тон</button>
     </div>
 
-    <!-- Умные рекомендации (сквозной блок) -->
+    <!-- Умные рекомендации с вечерним алертом по воде -->
     <div id="smartTip" class="app-card p-2.5 rounded-2xl border mb-3 text-[11px] font-medium text-emerald-800 dark:text-emerald-200 bg-emerald-50/70 dark:bg-emerald-950/40 shadow-sm">
         💡 Загрузка персональных рекомендаций...
     </div>
@@ -195,7 +195,7 @@
 
     <!-- ================= ВКЛАДКА 3: ВОДА И ВИТАМИНЫ ================= -->
     <div id="tab-water" class="tab-content space-y-3">
-        <!-- Вода -->
+        <!-- Вода с вечерним алертом -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-1">
                 <span class="font-bold text-sm text-[var(--text-dark)]">💧 Баланс воды</span>
@@ -243,7 +243,7 @@
             <div id="customList" class="space-y-1.5 max-h-44 overflow-y-auto text-[11px]"></div>
         </div>
 
-        <!-- Архив за 30 дней -->
+        <!-- Архив за 30 дней с возможностью редактирования -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-2">
                 <h3 class="font-bold text-sm text-[var(--text-dark)]">📅 Архив калорий (30 дней)</h3>
@@ -326,7 +326,7 @@
             { name: 'Лосось запеченный', kcal: 206, p: 22, f: 13, c: 0 },
             { name: 'Творог 5%', kcal: 121, p: 17, f: 5, c: 1.8 },
             { name: 'Яйца куриные (2 шт)', kcal: 155, p: 13, f: 11, c: 1.1 },
-            { name: 'Гречка отварной', kcal: 110, p: 4, f: 1, c: 21 },
+            { name: 'Гречка отварная', kcal: 110, p: 4, f: 1, c: 21 },
             { name: 'Банан', kcal: 89, p: 1.1, f: 0.3, c: 23 }
         ];
 
@@ -354,20 +354,17 @@
         let currentMealCat = 'Завтрак';
         let selectedBaseKcal100 = 0;
 
-        // ПРОВЕРКА СМЕНЫ ДНЯ (Автоматическое сохранение вчерашнего дня в архив при наступлении новых суток)
+        // ПРОВЕРКА СМЕНЫ ДНЯ
         function checkDateRollover() {
             const todayStr = new Date().toISOString().slice(0, 10);
             const lastActiveDate = localStorage.getItem('nutri_last_date');
 
             if (lastActiveDate && lastActiveDate !== todayStr) {
-                // Считаем реальный итог предыдущего дня
                 const prevTotal = foodItems.reduce((acc, item) => acc + Number(item.kcal), 0);
                 if (prevTotal > 0) {
                     historyData[lastActiveDate] = prevTotal;
                     localStorage.setItem('nutri_history', JSON.stringify(historyData));
                 }
-                
-                // Обнуляем текущий день для новых записей
                 water = 0;
                 foodItems = [];
                 vitaminsState = { d3: false, c: false, magnesium: false, zinc: false };
@@ -464,7 +461,6 @@
             updatePresetSelect();
         }
 
-        // Калькулятор граммовок при выборе из базы
         function selectPreset() {
             const sel = document.getElementById('foodPreset');
             if (!sel.value) return;
@@ -555,6 +551,7 @@
                 container.appendChild(g);
             }
             document.getElementById('wCount').innerText = `${(water * 0.25).toFixed(2)} / ${waterTargetL.toFixed(2)} л`;
+            updateSmartTips();
         }
 
         function addW() {
@@ -562,7 +559,6 @@
             water++;
             localStorage.setItem('nutri_water', water);
             renderWater();
-            updateSmartTips();
         }
 
         function removeW() {
@@ -571,11 +567,10 @@
                 water--;
                 localStorage.setItem('nutri_water', water);
                 renderWater();
-                updateSmartTips();
             }
         }
 
-        // Отрисовка дневника питания и прогресса на Главной
+        // Отрисовка дневника питания
         function renderFood() {
             const list = document.getElementById('foodList');
             list.innerHTML = '';
@@ -646,12 +641,11 @@
 
             localStorage.setItem('nutri_food', JSON.stringify(foodItems));
 
-            // Сохраняем текущий день в историю в реальном времени, чтобы архив всегда был актуальным
+            // Автоматическое обновление архива при изменении блюд
             const todayStr = new Date().toISOString().slice(0, 10);
-            if (totalEaten > 0) {
-                historyData[todayStr] = totalEaten;
-                localStorage.setItem('nutri_history', JSON.stringify(historyData));
-            }
+            historyData[todayStr] = totalEaten;
+            localStorage.setItem('nutri_history', JSON.stringify(historyData));
+            
             renderHistory();
             updateSmartTips();
         }
@@ -683,12 +677,11 @@
             renderFood();
         }
 
-        // БЕЗОПАСНОЕ СОХРАНЕНИЕ ДНЯ В АРХИВ И НОВЫЙ ДЕНЬ
+        // Фиксация и новый день
         function saveDayToArchive() {
             const todayStr = new Date().toISOString().slice(0, 10);
             const totalEaten = foodItems.reduce((acc, item) => acc + Number(item.kcal), 0);
             
-            // Фиксируем точный итог в архиве
             historyData[todayStr] = totalEaten;
             localStorage.setItem('nutri_history', JSON.stringify(historyData));
 
@@ -708,23 +701,49 @@
             }
         }
 
+        // УМНЫЕ СОВЕТЫ + ВЕЧЕРНИЙ ТРЕВОЖНЫЙ АЛЕРТ ПО ВОДЕ
         function updateSmartTips() {
             const tip = document.getElementById('smartTip');
             let totalEaten = foodItems.reduce((acc, item) => acc + Number(item.kcal), 0);
             let waterL = water * 0.25;
+            const currentHour = new Date().getHours();
 
-            if (waterL < waterTargetL * 0.7) {
-                tip.innerHTML = `💡 <b>Совет:</b> Вы выпили ${waterL.toFixed(2)} л воды. До вашей индивидуальной нормы осталось ${(waterTargetL - waterL).toFixed(2)} л.`;
+            // Если время после 18:00 (6 вечера) и выпито меньше половины нормы
+            if (currentHour >= 18 && waterL < (waterTargetL / 2)) {
+                tip.innerHTML = `🚨 <b>Внимание (вечерний алерт):</b> Вы выпили всего ${waterL.toFixed(2)} л воды из ${waterTargetL.toFixed(2)} л! Срочно выпейте пару стаканов до сна!`;
+                tip.className = "app-card p-2.5 rounded-2xl border mb-3 text-[11px] font-medium text-red-800 dark:text-red-200 bg-red-50/80 dark:bg-red-950/50 shadow-sm border-red-200";
+            } else if (waterL < waterTargetL * 0.7) {
+                tip.className = "app-card p-2.5 rounded-2xl border mb-3 text-[11px] font-medium text-emerald-800 dark:text-emerald-200 bg-emerald-50/70 dark:bg-emerald-950/40 shadow-sm";
+                tip.innerHTML = `💡 <b>Совет:</b> Вы выпили ${waterL.toFixed(2)} л воды. До нормы осталось ${(waterTargetL - waterL).toFixed(2)} л.`;
             } else if (totalEaten < currentTargetKcal * 0.75) {
+                tip.className = "app-card p-2.5 rounded-2xl border mb-3 text-[11px] font-medium text-emerald-800 dark:text-emerald-200 bg-emerald-50/70 dark:bg-emerald-950/40 shadow-sm";
                 tip.innerHTML = `💡 <b>Совет:</b> Вы набрали ${totalEaten} из ${currentTargetKcal} ккал. Не забудьте про белковый прием пищи!`;
             } else if (totalEaten > currentTargetKcal * 1.1) {
+                tip.className = "app-card p-2.5 rounded-2xl border mb-3 text-[11px] font-medium text-emerald-800 dark:text-emerald-200 bg-emerald-50/70 dark:bg-emerald-950/40 shadow-sm";
                 tip.innerHTML = `⚠️ <b>Внимание:</b> Суточная норма калорий превышена на ${totalEaten - currentTargetKcal} ккал.`;
             } else {
+                tip.className = "app-card p-2.5 rounded-2xl border mb-3 text-[11px] font-medium text-emerald-800 dark:text-emerald-200 bg-emerald-50/70 dark:bg-emerald-950/40 shadow-sm";
                 tip.innerHTML = `🌟 <b>Идеальный баланс!</b> Норма воды и калорий на сегодня выполнена отлично.`;
             }
         }
 
-        // Архив за 30 дней
+        // РЕДАКТИРУЕМЫЙ АРХИВ КАЛОРИЙ (КНОПКА ✏️)
+        function editHistoryDay(dateStr) {
+            haptic('light');
+            const currentVal = historyData[dateStr] || 0;
+            const newVal = prompt(`Изменить калории за ${dateStr}:`, currentVal);
+            if (newVal !== null) {
+                const parsed = parseInt(newVal);
+                if (!isNaN(parsed) && parsed >= 0) {
+                    historyData[dateStr] = parsed;
+                    localStorage.setItem('nutri_history', JSON.stringify(historyData));
+                    renderHistory();
+                } else {
+                    alert('Введите корректное число калорий.');
+                }
+            }
+        }
+
         function renderHistory() {
             const container = document.getElementById('historyList');
             container.innerHTML = '';
@@ -735,7 +754,7 @@
             }
             dates.forEach(d => {
                 const val = historyData[d];
-                if (!val || val === 0) return; // Пропускаем пустые дни
+                if (val === undefined || val === null) return;
                 
                 let badgeColor = 'text-amber-600 dark:text-amber-400';
                 let dot = '🟡';
@@ -749,7 +768,13 @@
 
                 const row = document.createElement('div');
                 row.className = 'flex justify-between items-center p-2 bg-emerald-50/30 dark:bg-emerald-950/20 rounded-xl';
-                row.innerHTML = `<span class="font-medium text-[var(--text-dark)]">${d}</span><span class="font-bold ${badgeColor}">${dot} ${val} ккал</span>`;
+                row.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium text-[var(--text-dark)]">${d}</span>
+                        <button onclick="editHistoryDay('${d}')" class="text-[10px] opacity-60 hover:opacity-100">✏️</button>
+                    </div>
+                    <span class="font-bold ${badgeColor}">${dot} ${val} ккал</span>
+                `;
                 container.appendChild(row);
             });
         }
