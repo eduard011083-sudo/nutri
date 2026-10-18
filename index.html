@@ -146,6 +146,11 @@
                 <span id="foodTotal" class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">0 / 2425 ккал</span>
             </div>
 
+            <!-- КНОПКА СБРОСА ДНЯ ТЕПЕРЬ СВЕРХУ -->
+            <button onclick="resetDay()" class="w-full mb-3 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 py-2 rounded-xl font-semibold text-xs active:scale-95 transition flex items-center justify-center gap-1.5 shadow-sm">
+                <span>🔄 Завершить / Сбросить день</span>
+            </button>
+
             <!-- Выбор категории приема пищи -->
             <div class="grid grid-cols-4 gap-1 mb-2.5">
                 <button onclick="setMealCat('Завтрак')" id="cat-Завтрак" class="meal-cat-btn py-1.5 rounded-xl text-[11px] font-bold bg-emerald-600 text-white">🌅 Завтрак</button>
@@ -185,8 +190,6 @@
 
             <!-- Список съеденного по категориям -->
             <div id="foodList" class="space-y-2.5 max-h-80 overflow-y-auto pr-0.5"></div>
-            
-            <button onclick="resetDay()" class="w-full mt-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 py-2 rounded-xl font-semibold text-xs active:scale-95 transition">🔄 Завершить / Сбросить день</button>
         </div>
     </div>
 
@@ -208,10 +211,13 @@
             </div>
         </div>
 
-        <!-- Витамины -->
+        <!-- Витамины с красным/зеленым индикатором оповещения -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-2">
-                <h3 class="font-bold text-sm text-[var(--text-dark)]">💊 Чек-лист витаминов</h3>
+                <div class="flex items-center gap-1.5">
+                    <h3 id="vitTitle" class="font-bold text-sm text-[var(--text-dark)]">💊 Чек-лист витаминов</h3>
+                    <span id="vitAlertBadge" class="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-400">🔴 Не все выпиты</span>
+                </div>
                 <span class="text-[10px] text-[var(--text-muted)]">Нажмите ✏️ для своего названия</span>
             </div>
             <div class="space-y-2 text-[11px]" id="vitaminsList"></div>
@@ -237,7 +243,7 @@
             <div id="customList" class="space-y-1.5 max-h-44 overflow-y-auto text-[11px]"></div>
         </div>
 
-        <!-- История за 30 дней с прокруткой и индикацией -->
+        <!-- Архив за 30 дней -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-2">
                 <h3 class="font-bold text-sm text-[var(--text-dark)]">📅 Архив калорий (30 дней)</h3>
@@ -354,11 +360,9 @@
             const lastActiveDate = localStorage.getItem('nutri_last_date');
 
             if (lastActiveDate && lastActiveDate !== todayStr) {
-                // Если наступил новый день, сохраняем итог вчерашнего в историю
                 const prevTotal = foodItems.reduce((acc, item) => acc + Number(item.kcal), 0);
                 historyData[lastActiveDate] = prevTotal;
                 
-                // Обнуляем показатели текущего дня
                 water = 0;
                 foodItems = [];
                 vitaminsState = { d3: false, c: false, magnesium: false, zinc: false };
@@ -371,7 +375,6 @@
             localStorage.setItem('nutri_last_date', todayStr);
         }
 
-        // Запуск проверки смены дня сразу при старте
         checkDateRollover();
 
         // Загрузка сохраненных параметров тела
@@ -477,13 +480,28 @@
             }
         }
 
-        // Витамины + редактирование названий
+        // Витамины с проверкой выполнения и красным/зеленым бейджем
         function renderVitamins() {
             const container = document.getElementById('vitaminsList');
             container.innerHTML = '';
+            
+            let allChecked = true;
+            vitaminsMeta.forEach(v => {
+                if (!vitaminsState[v.id]) allChecked = false;
+            });
+
+            const badge = document.getElementById('vitAlertBadge');
+            if (allChecked) {
+                badge.className = "text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400";
+                badge.innerText = "🟢 Все выпиты";
+            } else {
+                badge.className = "text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-400";
+                badge.innerText = "🔴 Не все выпиты";
+            }
+
             vitaminsMeta.forEach((v, idx) => {
                 const isChecked = !!vitaminsState[v.id];
-                const checkedClass = isChecked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-gray-300 bg-white dark:bg-emerald-950/40';
+                const checkedClass = isChecked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-red-300 bg-red-50/20 dark:bg-red-950/20';
                 const row = document.createElement('div');
                 row.className = 'flex justify-between items-center p-2.5 bg-emerald-50/40 dark:bg-emerald-950/25 rounded-xl';
                 row.innerHTML = `
@@ -693,7 +711,7 @@
             }
         }
 
-        // Архив расширен до 30 дней
+        // Архив за 30 дней
         function renderHistory() {
             const container = document.getElementById('historyList');
             container.innerHTML = '';
@@ -738,7 +756,6 @@
             targetF = Math.round((currentTargetKcal * 0.3) / 9);
             targetC = Math.round((currentTargetKcal - targetP * 4 - targetF * 9) / 4);
 
-            // Норма воды 30 мл на 1 кг веса
             waterTargetL = Math.round((w * 0.03) * 100) / 100;
             document.getElementById('waterNormHint').innerText = `Индивидуальная норма: 30 мл × ${w} кг = ${waterTargetL.toFixed(2)} л`;
 
