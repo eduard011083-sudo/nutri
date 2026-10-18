@@ -146,9 +146,9 @@
                 <span id="foodTotal" class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">0 / 2425 ккал</span>
             </div>
 
-            <!-- КНОПКА СБРОСА ДНЯ ТЕПЕРЬ СВЕРХУ -->
-            <button onclick="resetDay()" class="w-full mb-3 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 py-2 rounded-xl font-semibold text-xs active:scale-95 transition flex items-center justify-center gap-1.5 shadow-sm">
-                <span>🔄 Завершить / Сбросить день</span>
+            <!-- КНОПКА СОХРАНЕНИЯ ДНЯ В АРХИВ -->
+            <button onclick="saveDayToArchive()" class="w-full mb-3 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5">
+                <span>💾 Зафиксировать день в архив</span>
             </button>
 
             <!-- Выбор категории приема пищи -->
@@ -211,7 +211,7 @@
             </div>
         </div>
 
-        <!-- Витамины с красным/зеленым индикатором оповещения -->
+        <!-- Витамины с оповещением -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-2">
                 <div class="flex items-center gap-1.5">
@@ -326,7 +326,7 @@
             { name: 'Лосось запеченный', kcal: 206, p: 22, f: 13, c: 0 },
             { name: 'Творог 5%', kcal: 121, p: 17, f: 5, c: 1.8 },
             { name: 'Яйца куриные (2 шт)', kcal: 155, p: 13, f: 11, c: 1.1 },
-            { name: 'Гречка отварная', kcal: 110, p: 4, f: 1, c: 21 },
+            { name: 'Гречка отварной', kcal: 110, p: 4, f: 1, c: 21 },
             { name: 'Банан', kcal: 89, p: 1.1, f: 0.3, c: 23 }
         ];
 
@@ -354,15 +354,20 @@
         let currentMealCat = 'Завтрак';
         let selectedBaseKcal100 = 0;
 
-        // ПРОВЕРКА СМЕНЫ ДНЯ (Автоматическое обнуление в 00:00 или при новом дне)
+        // ПРОВЕРКА СМЕНЫ ДНЯ (Автоматическое сохранение вчерашнего дня в архив при наступлении новых суток)
         function checkDateRollover() {
             const todayStr = new Date().toISOString().slice(0, 10);
             const lastActiveDate = localStorage.getItem('nutri_last_date');
 
             if (lastActiveDate && lastActiveDate !== todayStr) {
+                // Считаем реальный итог предыдущего дня
                 const prevTotal = foodItems.reduce((acc, item) => acc + Number(item.kcal), 0);
-                historyData[lastActiveDate] = prevTotal;
+                if (prevTotal > 0) {
+                    historyData[lastActiveDate] = prevTotal;
+                    localStorage.setItem('nutri_history', JSON.stringify(historyData));
+                }
                 
+                // Обнуляем текущий день для новых записей
                 water = 0;
                 foodItems = [];
                 vitaminsState = { d3: false, c: false, magnesium: false, zinc: false };
@@ -370,7 +375,6 @@
                 localStorage.setItem('nutri_water', 0);
                 localStorage.setItem('nutri_food', JSON.stringify([]));
                 localStorage.setItem('nutri_vitamins', JSON.stringify(vitaminsState));
-                localStorage.setItem('nutri_history', JSON.stringify(historyData));
             }
             localStorage.setItem('nutri_last_date', todayStr);
         }
@@ -480,7 +484,7 @@
             }
         }
 
-        // Витамины с проверкой выполнения и красным/зеленым бейджем
+        // Витамины с оповещением
         function renderVitamins() {
             const container = document.getElementById('vitaminsList');
             container.innerHTML = '';
@@ -540,7 +544,7 @@
             }
         }
 
-        // Трекер воды с динамической нормой по весу
+        // Трекер воды
         function renderWater() {
             const container = document.getElementById('waterGlasses');
             container.innerHTML = '';
@@ -593,7 +597,6 @@
                         const div = document.createElement('div');
                         div.className = 'swipe-item flex justify-between items-center p-2 bg-emerald-50/40 dark:bg-emerald-950/30 rounded-xl';
                         
-                        // Свайп влево для удаления
                         let startX = 0;
                         div.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
                         div.addEventListener('touchend', e => {
@@ -621,7 +624,6 @@
                 list.innerHTML = `<div class="text-center py-4 text-[var(--text-muted)]">Дневник за сегодня пуст. Добавьте первое блюдо!</div>`;
             }
 
-            // Обновление счетчиков и кольца на Главной
             document.getElementById('foodTotal').innerText = `${totalEaten} / ${currentTargetKcal} ккал`;
             document.getElementById('homeKcalFraction').innerText = `${totalEaten} / ${currentTargetKcal} ккал`;
             document.getElementById('ringKcalNum').innerText = totalEaten;
@@ -630,7 +632,6 @@
             const circumference = 264;
             document.getElementById('kcalRing').style.strokeDashoffset = circumference - (pct * circumference);
 
-            // Оценка текущего прогресса БЖУ пропорционально съеденным калориям
             const eatenP = Math.round((totalEaten * 0.25) / 4);
             const eatenF = Math.round((totalEaten * 0.30) / 9);
             const eatenC = Math.round((totalEaten * 0.45) / 4);
@@ -645,10 +646,12 @@
 
             localStorage.setItem('nutri_food', JSON.stringify(foodItems));
 
-            // Сохранение в историю текущего дня
+            // Сохраняем текущий день в историю в реальном времени, чтобы архив всегда был актуальным
             const todayStr = new Date().toISOString().slice(0, 10);
-            historyData[todayStr] = totalEaten;
-            localStorage.setItem('nutri_history', JSON.stringify(historyData));
+            if (totalEaten > 0) {
+                historyData[todayStr] = totalEaten;
+                localStorage.setItem('nutri_history', JSON.stringify(historyData));
+            }
             renderHistory();
             updateSmartTips();
         }
@@ -680,15 +683,25 @@
             renderFood();
         }
 
-        function resetDay() {
-            if (confirm('Начать новый день? Текущие записи воды и еды обнулятся, а итог сохранится в архиве.')) {
+        // БЕЗОПАСНОЕ СОХРАНЕНИЕ ДНЯ В АРХИВ И НОВЫЙ ДЕНЬ
+        function saveDayToArchive() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const totalEaten = foodItems.reduce((acc, item) => acc + Number(item.kcal), 0);
+            
+            // Фиксируем точный итог в архиве
+            historyData[todayStr] = totalEaten;
+            localStorage.setItem('nutri_history', JSON.stringify(historyData));
+
+            if (confirm(`День (${totalEaten} ккал) успешно зафиксирован в архив! Хотите очистить экран и начать новый день?`)) {
                 haptic('success');
                 water = 0;
                 foodItems = [];
                 vitaminsState = { d3: false, c: false, magnesium: false, zinc: false };
+                
                 localStorage.setItem('nutri_water', 0);
                 localStorage.setItem('nutri_food', JSON.stringify([]));
                 localStorage.setItem('nutri_vitamins', JSON.stringify(vitaminsState));
+                
                 renderWater();
                 renderVitamins();
                 renderFood();
@@ -722,6 +735,8 @@
             }
             dates.forEach(d => {
                 const val = historyData[d];
+                if (!val || val === 0) return; // Пропускаем пустые дни
+                
                 let badgeColor = 'text-amber-600 dark:text-amber-400';
                 let dot = '🟡';
                 if (val >= currentTargetKcal * 0.85 && val <= currentTargetKcal * 1.1) {
