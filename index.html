@@ -58,14 +58,14 @@
     <!-- ================= ВКЛАДКА 1: ГЛАВНАЯ ================= -->
     <div id="tab-home" class="tab-content active space-y-3">
         
-        <!-- Прогресс за день (Кольцо + БЖУ бары) -->
+        <!-- Прогресс за день (Кольцо + БЖУ бары + Мини-диаграмма недели) -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-2">
                 <span class="font-bold text-sm text-[var(--text-dark)]">📊 Прогресс за день</span>
                 <span id="homeKcalFraction" class="text-xs font-bold text-emerald-600 dark:text-emerald-400">0 / 2425 ккал</span>
             </div>
 
-            <!-- Круговая диаграмма калорий -->
+            <!-- Круговая диаграмма калорий + Быстрый стакан воды -->
             <div class="relative w-32 h-32 mx-auto my-2 flex items-center justify-center">
                 <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="9" class="text-emerald-100 dark:text-emerald-950" fill="transparent"/>
@@ -75,6 +75,17 @@
                     <span id="ringKcalNum" class="text-lg font-extrabold text-[var(--text-dark)]">0</span>
                     <span class="text-[10px] text-[var(--text-muted)]">ккал съедено</span>
                 </div>
+                <!-- Плавающая кнопка быстрого добавления воды -->
+                <button onclick="addCustomWater(250)" title="Быстро добавить стакан воды" class="absolute -bottom-1 right-2 bg-sky-500 hover:bg-sky-600 active:scale-95 text-white w-8 h-8 rounded-full shadow-md flex items-center justify-center text-xs font-bold">🥤</button>
+            </div>
+
+            <!-- Мини-диаграмма недели (Пн - Вс) -->
+            <div class="mt-3 pt-2 border-t border-[var(--border-mint)]">
+                <div class="text-[10px] text-[var(--text-muted)] mb-1 flex justify-between">
+                    <span>📅 Активность за неделю</span>
+                    <span id="weekAvgText">Ср. 0 ккал</span>
+                </div>
+                <div id="weekMiniChart" class="flex justify-between gap-1"></div>
             </div>
 
             <!-- Динамические прогресс-бары БЖУ -->
@@ -195,7 +206,7 @@
 
     <!-- ================= ВКЛАДКА 3: ВОДА И ВИТАМИНЫ ================= -->
     <div id="tab-water" class="tab-content space-y-3">
-        <!-- Вода с вечерним алертом -->
+        <!-- Вода с кастомными объемами и алертом -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-1">
                 <span class="font-bold text-sm text-[var(--text-dark)]">💧 Баланс воды</span>
@@ -205,9 +216,11 @@
             
             <div class="flex gap-1 mb-3" id="waterGlasses"></div>
             
-            <div class="flex gap-2">
-                <button onclick="removeW()" class="px-4 bg-gray-100 dark:bg-emerald-950/60 text-[var(--text-dark)] border border-[var(--border-mint)] py-2 rounded-xl font-bold text-xs active:scale-95 transition">− Стакан</button>
-                <button onclick="addW()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold text-xs shadow-sm active:scale-95 transition">+ Стакан (250 мл)</button>
+            <div class="grid grid-cols-4 gap-1.5">
+                <button onclick="removeWaterMl(250)" class="bg-gray-100 dark:bg-emerald-950/60 text-[var(--text-dark)] border border-[var(--border-mint)] py-2 rounded-xl font-bold text-[11px] active:scale-95 transition">− Стакан</button>
+                <button onclick="addCustomWater(150)" class="bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-900 py-2 rounded-xl font-bold text-[11px] active:scale-95 transition">+150 мл</button>
+                <button onclick="addCustomWater(250)" class="bg-sky-600 hover:bg-sky-700 text-white py-2 rounded-xl font-bold text-[11px] active:scale-95 transition">+250 мл</button>
+                <button onclick="addCustomWater(500)" class="bg-sky-700 hover:bg-sky-800 text-white py-2 rounded-xl font-bold text-[11px] active:scale-95 transition">+500 мл</button>
             </div>
         </div>
 
@@ -310,7 +323,7 @@
             document.getElementById('htmlRoot').classList.toggle('dark', isDark);
         }
 
-        // Переключение вкладок (теперь их 5)
+        // Переключение вкладок
         function switchTab(tabId) {
             haptic('light');
             hideKeyboard();
@@ -340,8 +353,8 @@
             { name: 'Банан', kcal: 89, p: 1.1, f: 0.3, c: 23 }
         ];
 
-        // Состояние данных
-        let water = parseInt(localStorage.getItem('nutri_water')) || 0;
+        // Состояние данных (вода теперь хранится в миллилитрах для точного учета 150/250/500 мл)
+        let waterMl = parseInt(localStorage.getItem('nutri_water_ml')) || 0;
         let foodItems = JSON.parse(localStorage.getItem('nutri_food')) || [];
         let customProducts = JSON.parse(localStorage.getItem('nutri_custom_base')) || [
             { name: 'Блины с творогом', kcal: 250 },
@@ -360,7 +373,7 @@
 
         let currentTargetKcal = 2425;
         let targetP = 149, targetF = 81, targetC = 275;
-        let waterTargetL = 2.5;
+        let waterTargetMl = 2500;
         let currentMealCat = 'Завтрак';
         let selectedBaseKcal100 = 0;
 
@@ -375,11 +388,11 @@
                     historyData[lastActiveDate] = prevTotal;
                     localStorage.setItem('nutri_history', JSON.stringify(historyData));
                 }
-                water = 0;
+                waterMl = 0;
                 foodItems = [];
                 vitaminsState = { d3: false, c: false, magnesium: false, zinc: false };
                 
-                localStorage.setItem('nutri_water', 0);
+                localStorage.setItem('nutri_water_ml', 0);
                 localStorage.setItem('nutri_food', JSON.stringify([]));
                 localStorage.setItem('nutri_vitamins', JSON.stringify(vitaminsState));
             }
@@ -550,37 +563,43 @@
             }
         }
 
-        // Трекер воды
+        // Трекер воды с кастомными объемами (+150, +250, +500 мл)
         function renderWater() {
             const container = document.getElementById('waterGlasses');
             container.innerHTML = '';
-            const maxGlasses = Math.max(8, Math.round(waterTargetL / 0.25));
-            for (let i = 0; i < maxGlasses; i++) {
+            
+            // Визуальные шкалы по 250 мл
+            const totalGlasses = Math.max(8, Math.round(waterTargetMl / 250));
+            const currentGlasses = Math.floor(waterMl / 250);
+
+            for (let i = 0; i < totalGlasses; i++) {
                 const g = document.createElement('div');
-                g.className = `flex-1 h-6 rounded-lg transition-all ${i < water ? 'bg-emerald-500 shadow-sm' : 'bg-emerald-100/80 dark:bg-emerald-900/30'}`;
+                g.className = `flex-1 h-6 rounded-lg transition-all ${i < currentGlasses ? 'bg-sky-500 shadow-sm' : 'bg-sky-100/80 dark:bg-sky-950/30'}`;
                 container.appendChild(g);
             }
-            document.getElementById('wCount').innerText = `${(water * 0.25).toFixed(2)} / ${waterTargetL.toFixed(2)} л`;
+            document.getElementById('wCount').innerText = `${(waterMl / 1000).toFixed(2)} / ${(waterTargetMl / 1000).toFixed(2)} л`;
             updateSmartTips();
         }
 
-        function addW() {
+        function addCustomWater(ml) {
             haptic('light');
-            water++;
-            localStorage.setItem('nutri_water', water);
+            waterMl += ml;
+            localStorage.setItem('nutri_water_ml', waterMl);
             renderWater();
         }
 
-        function removeW() {
-            if (water > 0) {
+        function removeWaterMl(ml) {
+            if (waterMl >= ml) {
                 haptic('light');
-                water--;
-                localStorage.setItem('nutri_water', water);
-                renderWater();
+                waterMl -= ml;
+            } else {
+                waterMl = 0;
             }
+            localStorage.setItem('nutri_water_ml', waterMl);
+            renderWater();
         }
 
-        // Отрисовка дневника питания
+        // Отрисовка дневника питания + мини-диаграмма недели на Главной
         function renderFood() {
             const list = document.getElementById('foodList');
             list.innerHTML = '';
@@ -656,7 +675,46 @@
             localStorage.setItem('nutri_history', JSON.stringify(historyData));
             
             renderHistory();
+            renderWeekMiniChart();
             updateSmartTips();
+        }
+
+        // Отрисовка мини-диаграммы недели на главной
+        function renderWeekMiniChart() {
+            const container = document.getElementById('weekMiniChart');
+            container.innerHTML = '';
+            
+            const daysNames = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+            const today = new Date();
+            
+            let sum = 0;
+            let count = 0;
+
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                const dateStr = d.toISOString().slice(0, 10);
+                const dayName = daysNames[(d.getDay() + 6) % 7];
+                const val = historyData[dateStr] || (i === 0 ? foodItems.reduce((s, it) => s + Number(it.kcal), 0) : 0);
+
+                if (val > 0) { sum += val; count++; }
+
+                let dotColor = 'bg-gray-200 dark:bg-emerald-950';
+                if (val >= currentTargetKcal * 0.85 && val <= currentTargetKcal * 1.1) dotColor = 'bg-emerald-500';
+                else if (val > currentTargetKcal * 1.1) dotColor = 'bg-red-400';
+                else if (val > 0) dotColor = 'bg-amber-400';
+
+                const col = document.createElement('div');
+                col.className = 'flex-1 flex flex-col items-center gap-1';
+                col.innerHTML = `
+                    <div class="w-full h-3.5 rounded-md ${dotColor} flex items-center justify-center text-[9px] font-bold text-white shadow-xs" title="${dateStr}: ${val} ккал"></div>
+                    <span class="text-[9px] text-[var(--text-muted)]">${dayName}</span>
+                `;
+                container.appendChild(col);
+            }
+
+            const avg = count > 0 ? Math.round(sum / count) : 0;
+            document.getElementById('weekAvgText').innerText = `Ср. ${avg} ккал`;
         }
 
         function addFood() {
@@ -696,11 +754,11 @@
 
             if (confirm(`День (${totalEaten} ккал) успешно зафиксирован в архив! Хотите очистить экран и начать новый день?`)) {
                 haptic('success');
-                water = 0;
+                waterMl = 0;
                 foodItems = [];
                 vitaminsState = { d3: false, c: false, magnesium: false, zinc: false };
                 
-                localStorage.setItem('nutri_water', 0);
+                localStorage.setItem('nutri_water_ml', 0);
                 localStorage.setItem('nutri_food', JSON.stringify([]));
                 localStorage.setItem('nutri_vitamins', JSON.stringify(vitaminsState));
                 
@@ -714,15 +772,15 @@
         function updateSmartTips() {
             const tip = document.getElementById('smartTip');
             let totalEaten = foodItems.reduce((acc, item) => acc + Number(item.kcal), 0);
-            let waterL = water * 0.25;
+            let waterL = waterMl / 1000;
             const currentHour = new Date().getHours();
 
-            if (currentHour >= 18 && waterL < (waterTargetL / 2)) {
-                tip.innerHTML = `🚨 <b>Внимание (вечерний алерт):</b> Вы выпили всего ${waterL.toFixed(2)} л воды из ${waterTargetL.toFixed(2)} л! Срочно выпейте пару стаканов до сна!`;
+            if (currentHour >= 18 && waterL < (waterTargetMl / 2000)) {
+                tip.innerHTML = `🚨 <b>Внимание (вечерний алерт):</b> Вы выпили всего ${waterL.toFixed(2)} л воды из ${(waterTargetMl/1000).toFixed(1)} л! Срочно выпейте пару стаканов до сна!`;
                 tip.className = "app-card p-2.5 rounded-2xl border mb-3 text-[11px] font-medium text-red-800 dark:text-red-200 bg-red-50/80 dark:bg-red-950/50 shadow-sm border-red-200";
-            } else if (waterL < waterTargetL * 0.7) {
+            } else if (waterL < (waterTargetMl / 1000) * 0.7) {
                 tip.className = "app-card p-2.5 rounded-2xl border mb-3 text-[11px] font-medium text-emerald-800 dark:text-emerald-200 bg-emerald-50/70 dark:bg-emerald-950/40 shadow-sm";
-                tip.innerHTML = `💡 <b>Совет:</b> Вы выпили ${waterL.toFixed(2)} л воды. До нормы осталось ${(waterTargetL - waterL).toFixed(2)} л.`;
+                tip.innerHTML = `💡 <b>Совет:</b> Вы выпили ${waterL.toFixed(2)} л воды. До нормы осталось ${((waterTargetMl/1000) - waterL).toFixed(2)} л.`;
             } else if (totalEaten < currentTargetKcal * 0.75) {
                 tip.className = "app-card p-2.5 rounded-2xl border mb-3 text-[11px] font-medium text-emerald-800 dark:text-emerald-200 bg-emerald-50/70 dark:bg-emerald-950/40 shadow-sm";
                 tip.innerHTML = `💡 <b>Совет:</b> Вы набрали ${totalEaten} из ${currentTargetKcal} ккал. Не забудьте про белковый прием пищи!`;
@@ -746,6 +804,7 @@
                     historyData[dateStr] = parsed;
                     localStorage.setItem('nutri_history', JSON.stringify(historyData));
                     renderHistory();
+                    renderWeekMiniChart();
                 } else {
                     alert('Введите корректное число калорий.');
                 }
@@ -758,6 +817,7 @@
                 delete historyData[dateStr];
                 localStorage.setItem('nutri_history', JSON.stringify(historyData));
                 renderHistory();
+                renderWeekMiniChart();
             }
         }
 
@@ -768,7 +828,6 @@
             
             const dates = Object.keys(historyData).sort().reverse().slice(0, 30);
             
-            // Расчет статистики за последние 7 дней
             let recentSum = 0;
             let recentCount = 0;
             dates.slice(0, 7).forEach(d => {
@@ -830,8 +889,8 @@
             targetF = Math.round((currentTargetKcal * 0.3) / 9);
             targetC = Math.round((currentTargetKcal - targetP * 4 - targetF * 9) / 4);
 
-            waterTargetL = Math.round((w * 0.03) * 100) / 100;
-            document.getElementById('waterNormHint').innerText = `Индивидуальная норма: 30 мл × ${w} кг = ${waterTargetL.toFixed(2)} л`;
+            waterTargetMl = Math.round((w * 30));
+            document.getElementById('waterNormHint').innerText = `Индивидуальная норма: 30 мл × ${w} кг = ${(waterTargetMl/1000).toFixed(2)} л`;
 
             renderWater();
             renderFood();
