@@ -211,12 +211,9 @@
     <!-- ================= ВКЛАДКА 3: ВОДА, ВИТАМИНЫ И ПИВНОЙ БАР ================= -->
     <div id="tab-water" class="tab-content space-y-3">
         
-        <!-- ОСОЗНАННЫЙ БАР (ПИВНОЙ ДИЗАЙН: ЯНТАРЬ, СОЛОД И ПЕНА) -->
+        <!-- ОСОЗНАННЫЙ БАР (С КНОПКОЙ УДАЛЕНИЯ) -->
         <div class="bg-gradient-to-br from-[#FFFBEB] via-[#FEF3C7] to-[#FDE68A] dark:from-[#291D0A] dark:via-[#1F1608] dark:to-[#171005] p-3.5 rounded-2xl border-2 border-amber-300 dark:border-amber-700/60 shadow-sm relative overflow-hidden">
-            <!-- Декоративная "пенная" полоска сверху -->
             <div class="absolute top-0 left-0 right-0 h-1.5 bg-white/90 dark:bg-amber-200/20"></div>
-            <!-- Фоновая водяная марка -->
-            <div class="absolute -right-3 -top-3 text-6xl opacity-15 pointer-events-none">🍺</div>
             <div class="absolute right-12 -bottom-4 text-5xl opacity-10 pointer-events-none">🌾</div>
 
             <div class="flex justify-between items-center mb-1 relative z-10">
@@ -225,19 +222,23 @@
             </div>
             <p class="text-[10px] text-amber-900/80 dark:text-amber-200/70 mb-2 relative z-10">Лимит ВОЗ низкого риска: 14 стандартных доз в неделю.</p>
             
-            <!-- Шкала с эффектом бокала -->
             <div class="w-full h-3 bg-white/80 dark:bg-black/40 border border-amber-300 dark:border-amber-800/60 rounded-full overflow-hidden mb-1.5 relative z-10 p-0.5">
                 <div id="alcBar" class="h-full rounded-full bg-amber-500 transition-all duration-500" style="width: 0%"></div>
             </div>
             <p id="alcAlertText" class="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 mb-3 relative z-10">🟢 Отличный контроль! Риски минимальны.</p>
             
-            <p class="text-[9px] font-semibold text-amber-950 dark:text-amber-200 mb-1.5 opacity-90 relative z-10">Добавить напиток (+автозапись калорий в дневник):</p>
-            <div class="grid grid-cols-2 gap-1.5 relative z-10">
-                <button onclick="addDrink('beer3')" class="bg-[#FFFDF7] hover:bg-white dark:bg-[#33240D] text-amber-950 dark:text-amber-100 border border-amber-400/80 dark:border-amber-700 py-2 rounded-xl font-bold text-[10px] shadow-sm active:scale-95 transition">🍺 Пиво (0.3л)</button>
+            <p class="text-[9px] font-semibold text-amber-950 dark:text-amber-200 mb-1.5 opacity-90 relative z-10">Добавить напиток (+автозапись калорий):</p>
+            <div class="grid grid-cols-2 gap-1.5 relative z-10 mb-2">
+                <button onclick="addDrink('beer3')" class="bg-[#FFFDF7] hover:bg-white dark:bg-[#33240D] text-amber-950 dark:text-amber-100 border border-amber-400/80 dark:border-amber-700 py-2 rounded-xl font-bold text-[10px] shadow-sm active:scale-95 transition">🍺 Пиво (0.33л)</button>
                 <button onclick="addDrink('beer5')" class="bg-[#FFFDF7] hover:bg-white dark:bg-[#33240D] text-amber-950 dark:text-amber-100 border border-amber-400/80 dark:border-amber-700 py-2 rounded-xl font-bold text-[10px] shadow-sm active:scale-95 transition">🍺 Пиво (0.5л)</button>
                 <button onclick="addDrink('wine')" class="bg-[#FFFDF7] hover:bg-white dark:bg-[#33240D] text-amber-950 dark:text-amber-100 border border-amber-400/80 dark:border-amber-700 py-2 rounded-xl font-bold text-[10px] shadow-sm active:scale-95 transition">🍷 Вино (150мл)</button>
                 <button onclick="addDrink('shot')" class="bg-[#FFFDF7] hover:bg-white dark:bg-[#33240D] text-amber-950 dark:text-amber-100 border border-amber-400/80 dark:border-amber-700 py-2 rounded-xl font-bold text-[10px] shadow-sm active:scale-95 transition">🥃 Крепкий (40мл)</button>
             </div>
+            
+            <!-- КНОПКА ОТМЕНЫ (УДАЛЕНИЯ) ПОСЛЕДНЕГО НАПИТКА -->
+            <button onclick="removeLastDrink()" class="w-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-950 dark:text-amber-200 border border-amber-400/50 py-1.5 rounded-xl font-semibold text-[10px] active:scale-95 transition relative z-10">
+                <span>− Удалить последний напиток</span>
+            </button>
         </div>
 
         <!-- Вода -->
@@ -622,7 +623,7 @@
             renderWater();
         }
 
-        // АЛКОГОЛЬНЫЙ БЛОК (ПИВНОЙ СТИЛЬ)
+        // АЛКОГОЛЬНЫЙ БЛОК (С ТОЧНЫМИ КАЛОРИЯМИ И УДАЛЕНИЕМ)
         function renderAlcohol() {
             const today = new Date();
             let weeklyUnits = 0;
@@ -658,6 +659,7 @@
         }
 
         function addDrink(type) {
+            // Точная калорийность и дозы напитков
             const drinks = {
                 beer3: { name: '🍺 Пиво (0.33л)', kcal: 140, u: 1.3 },
                 beer5: { name: '🍺 Пиво (0.5л)', kcal: 215, u: 2.0 },
@@ -671,12 +673,47 @@
             alcoholHistory[todayStr] = (alcoholHistory[todayStr] || 0) + drink.u;
             localStorage.setItem('nutri_alcohol', JSON.stringify(alcoholHistory));
             
+            // Автозапись калорий в дневник питания
             foodItems.push({ name: drink.name, kcal: drink.kcal, grams: 0, sugar: 0, cat: 'Ужин' });
             
             haptic('success');
             renderAlcohol();
             renderFood();
-            alert(`Добавлено: ${drink.name}.\n+${drink.u} доз в бар и +${drink.kcal} ккал в дневник питания!`);
+        }
+
+        function removeLastDrink() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            if (!alcoholHistory[todayStr] || alcoholHistory[todayStr] <= 0) {
+                alert('Сегодня вы еще ничего не добавляли в бар.');
+                return;
+            }
+
+            // Ищем последний алкогольный напиток в дневнике за сегодня и удаляем
+            let lastAlcIndex = -1;
+            for (let i = foodItems.length - 1; i >= 0; i--) {
+                const name = foodItems[i].name;
+                if (name.includes('🍺') || name.includes('🍷') || name.includes('🥃')) {
+                    lastAlcIndex = i;
+                    break;
+                }
+            }
+
+            if (lastAlcIndex !== -1) {
+                const item = foodItems[lastAlcIndex];
+                let u = 1.3;
+                if (item.name.includes('Пиво (0.5л)')) u = 2.0;
+                if (item.name.includes('Вино')) u = 1.5;
+
+                alcoholHistory[todayStr] = Math.max(0, alcoholHistory[todayStr] - u);
+                localStorage.setItem('nutri_alcohol', JSON.stringify(alcoholHistory));
+
+                foodItems.splice(lastAlcIndex, 1);
+                haptic('success');
+                renderAlcohol();
+                renderFood();
+            } else {
+                alert('В дневнике не найдено записей напитков для удаления.');
+            }
         }
 
         function renderFood() {
@@ -831,13 +868,11 @@
             const item = foodItems[index];
             if (item.name.includes('🍷') || item.name.includes('🍺') || item.name.includes('🥃')) {
                 const todayStr = new Date().toISOString().slice(0, 10);
-                let u = 0;
-                if (item.name.includes('Вино')) u = 1.5;
-                if (item.name.includes('Пиво (0.33л)')) u = 1.3;
+                let u = 1.3;
                 if (item.name.includes('Пиво (0.5л)')) u = 2.0;
-                if (item.name.includes('Крепкий')) u = 1.3;
+                if (item.name.includes('Вино')) u = 1.5;
                 
-                if (u > 0 && alcoholHistory[todayStr]) {
+                if (alcoholHistory[todayStr]) {
                     alcoholHistory[todayStr] = Math.max(0, alcoholHistory[todayStr] - u);
                     localStorage.setItem('nutri_alcohol', JSON.stringify(alcoholHistory));
                     renderAlcohol();
