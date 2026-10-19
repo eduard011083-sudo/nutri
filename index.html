@@ -2,7 +2,7 @@
 <html lang="ru" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>NutriBalance Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,7 +27,7 @@
             background-color: var(--bg-mint); 
             color: var(--text-dark); 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            padding-bottom: 85px; 
+            padding-bottom: 120px; /* Отступ для списков, чтобы они не прятались за меню */
             transition: background 0.3s, color 0.3s; 
             overflow-x: hidden;
         }
@@ -37,6 +37,11 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
         .ring-progress { transition: stroke-dashoffset 0.5s ease-out; }
         .swipe-item { transition: transform 0.2s ease, opacity 0.2s ease; touch-action: pan-y; }
+        
+        /* Умный отступ для нижнего меню от системных жестов телефона */
+        .bottom-nav-safe {
+            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        }
     </style>
 </head>
 <body class="p-3 max-w-md mx-auto text-xs select-none">
@@ -50,22 +55,22 @@
         <button onclick="toggleTheme()" class="px-3 py-1.5 rounded-xl border border-[var(--border-mint)] app-card font-medium text-[var(--text-dark)] shadow-sm active:scale-95 transition">🌙 Тон</button>
     </div>
 
-    <!-- Умные рекомендации с вечерним алертом по воде -->
+    <!-- Умные рекомендации -->
     <div id="smartTip" class="app-card p-2.5 rounded-2xl border mb-3 text-[11px] font-medium text-emerald-800 dark:text-emerald-200 bg-emerald-50/70 dark:bg-emerald-950/40 shadow-sm">
-        💡 Загрузка персональных рекомендаций...
+        💡 Загрузка рекомендаций...
     </div>
 
     <!-- ================= ВКЛАДКА 1: ГЛАВНАЯ ================= -->
-    <div id="tab-home" class="tab-content active space-y-3">
+    <div id="tab-home" class="tab-content active space-y-3 pb-2">
         
-        <!-- Прогресс за день (Кольцо + БЖУ бары + Мини-диаграмма недели) -->
+        <!-- Прогресс за день -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-2">
                 <span class="font-bold text-sm text-[var(--text-dark)]">📊 Прогресс за день</span>
                 <span id="homeKcalFraction" class="text-xs font-bold text-emerald-600 dark:text-emerald-400">0 / 2425 ккал</span>
             </div>
 
-            <!-- Круговая диаграмма калорий + Быстрый стакан воды -->
+            <!-- Круговая диаграмма -->
             <div class="relative w-32 h-32 mx-auto my-2 flex items-center justify-center">
                 <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="9" class="text-emerald-100 dark:text-emerald-950" fill="transparent"/>
@@ -75,11 +80,10 @@
                     <span id="ringKcalNum" class="text-lg font-extrabold text-[var(--text-dark)]">0</span>
                     <span class="text-[10px] text-[var(--text-muted)]">ккал съедено</span>
                 </div>
-                <!-- Плавающая кнопка быстрого добавления воды -->
                 <button onclick="addCustomWater(250)" title="Быстро добавить стакан воды" class="absolute -bottom-1 right-2 bg-sky-500 hover:bg-sky-600 active:scale-95 text-white w-8 h-8 rounded-full shadow-md flex items-center justify-center text-xs font-bold">🥤</button>
             </div>
 
-            <!-- Мини-диаграмма недели (Пн - Вс) -->
+            <!-- Мини-диаграмма недели -->
             <div class="mt-3 pt-2 border-t border-[var(--border-mint)]">
                 <div class="text-[10px] text-[var(--text-muted)] mb-1 flex justify-between">
                     <span>📅 Активность за неделю</span>
@@ -88,7 +92,7 @@
                 <div id="weekMiniChart" class="flex justify-between gap-1"></div>
             </div>
 
-            <!-- Динамические прогресс-бары БЖУ -->
+            <!-- Динамические прогресс-бары БЖУ + САХАР -->
             <div class="space-y-2 mt-3">
                 <div>
                     <div class="flex justify-between text-[11px] mb-0.5">
@@ -115,6 +119,15 @@
                     </div>
                     <div class="w-full h-2 bg-emerald-100 dark:bg-emerald-950 rounded-full overflow-hidden">
                         <div id="cBar" class="h-full bg-sky-500 transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-[11px] mb-0.5">
+                        <span class="text-[var(--text-muted)] font-medium">Сахар (лимит ВОЗ)</span>
+                        <span id="sBarText" class="font-semibold text-[var(--text-dark)]">0 / 60 г</span>
+                    </div>
+                    <div class="w-full h-2 bg-pink-100 dark:bg-pink-950/40 rounded-full overflow-hidden">
+                        <div id="sBar" class="h-full bg-pink-500 transition-all duration-300" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
@@ -157,12 +170,11 @@
                 <span id="foodTotal" class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">0 / 2425 ккал</span>
             </div>
 
-            <!-- КНОПКА СОХРАНЕНИЯ ДНЯ В АРХИВ -->
             <button onclick="saveDayToArchive()" class="w-full mb-3 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5">
                 <span>💾 Зафиксировать день в архив</span>
             </button>
 
-            <!-- Выбор категории приема пищи -->
+            <!-- Выбор категории -->
             <div class="grid grid-cols-4 gap-1 mb-2.5">
                 <button onclick="setMealCat('Завтрак')" id="cat-Завтрак" class="meal-cat-btn py-1.5 rounded-xl text-[11px] font-bold bg-emerald-600 text-white">🌅 Завтрак</button>
                 <button onclick="setMealCat('Обед')" id="cat-Обед" class="meal-cat-btn py-1.5 rounded-xl text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950/50 text-[var(--text-muted)]">🍲 Обед</button>
@@ -170,7 +182,6 @@
                 <button onclick="setMealCat('Перекус')" id="cat-Перекус" class="meal-cat-btn py-1.5 rounded-xl text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950/50 text-[var(--text-muted)]">🍏 Перекус</button>
             </div>
 
-            <!-- Выбор из базы + калькулятор граммовок -->
             <div class="mb-2">
                 <label class="text-[10px] text-[var(--text-muted)] block mb-0.5">Выбрать из базы (расчет на 100г):</label>
                 <select id="foodPreset" onchange="selectPreset()" class="w-full p-2 border border-[var(--border-mint)] rounded-xl bg-emerald-50/30 dark:bg-emerald-900/20 text-xs text-[var(--text-dark)]">
@@ -178,35 +189,37 @@
                 </select>
             </div>
 
-            <!-- Поля ввода: Блюдо, Вес (г), Итого Ккал -->
+            <!-- Поля ввода с добавлением Сахара -->
             <div class="grid grid-cols-12 gap-1.5 mb-2.5 items-end">
-                <div class="col-span-5">
+                <div class="col-span-12 mb-1">
                     <label class="text-[9px] text-[var(--text-muted)]">Продукт / Блюдо</label>
-                    <input type="text" id="foodName" placeholder="Название" class="w-full p-2 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs text-[var(--text-dark)]">
+                    <input type="text" id="foodName" placeholder="Название блюда" class="w-full p-2 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs text-[var(--text-dark)]">
                 </div>
                 <div class="col-span-3">
                     <label class="text-[9px] text-[var(--text-muted)]">Вес (г)</label>
                     <input type="number" id="foodGrams" value="100" oninput="recalcGrams()" placeholder="Грамм" class="w-full p-2 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs font-semibold text-[var(--text-dark)]">
                 </div>
-                <div class="col-span-2">
+                <div class="col-span-3">
                     <label class="text-[9px] text-[var(--text-muted)]">Ккал</label>
                     <input type="number" id="foodKcal" placeholder="Ккал" class="w-full p-2 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                 </div>
-                <div class="col-span-2">
+                <div class="col-span-3">
+                    <label class="text-[9px] text-[var(--text-muted)] text-pink-600">Сахар (г)</label>
+                    <input type="number" id="foodSugar" placeholder="0" class="w-full p-2 border border-[var(--border-mint)] rounded-xl bg-pink-50/30 dark:bg-pink-900/10 text-xs font-bold text-pink-500">
+                </div>
+                <div class="col-span-3">
                     <button onclick="addFood()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white py-2 rounded-xl font-bold text-sm shadow-sm">+</button>
                 </div>
             </div>
 
             <p class="text-[10px] text-[var(--text-muted)] mb-2">💡 <i>Подсказка: смахните запись влево или нажмите «×» для удаления.</i></p>
 
-            <!-- Список съеденного по категориям -->
             <div id="foodList" class="space-y-2.5 max-h-80 overflow-y-auto pr-0.5"></div>
         </div>
     </div>
 
     <!-- ================= ВКЛАДКА 3: ВОДА И ВИТАМИНЫ ================= -->
     <div id="tab-water" class="tab-content space-y-3">
-        <!-- Вода с кастомными объемами и алертом -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-1">
                 <span class="font-bold text-sm text-[var(--text-dark)]">💧 Баланс воды</span>
@@ -224,14 +237,13 @@
             </div>
         </div>
 
-        <!-- Витамины с оповещением -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-2">
                 <div class="flex items-center gap-1.5">
                     <h3 id="vitTitle" class="font-bold text-sm text-[var(--text-dark)]">💊 Чек-лист витаминов</h3>
                     <span id="vitAlertBadge" class="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-400">🔴 Не все выпиты</span>
                 </div>
-                <span class="text-[10px] text-[var(--text-muted)]">Нажмите ✏️ для своего названия</span>
+                <span class="text-[10px] text-[var(--text-muted)]">Нажмите ✏️</span>
             </div>
             <div class="space-y-2 text-[11px]" id="vitaminsList"></div>
         </div>
@@ -242,14 +254,13 @@
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <h3 class="font-bold text-sm text-[var(--text-dark)] mb-2">📚 Моя база продуктов (на 100г)</h3>
             
-            <!-- Добавление нового продукта -->
             <div class="grid grid-cols-12 gap-1.5 mb-2.5">
-                <input type="text" id="customName" placeholder="Название блюда/продукта" class="col-span-6 p-2 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs text-[var(--text-dark)]">
-                <input type="number" id="customKcal" placeholder="Ккал/100г" class="col-span-4 p-2 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 dark:bg-emerald-900/10 text-xs text-[var(--text-dark)]">
-                <button onclick="saveCustomProduct()" class="col-span-2 bg-emerald-600 text-white rounded-xl font-bold text-xs active:scale-95">Сохр.</button>
+                <input type="text" id="customName" placeholder="Блюдо" class="col-span-5 p-2 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 text-xs text-[var(--text-dark)]">
+                <input type="number" id="customKcal" placeholder="Ккал" class="col-span-3 p-2 border border-[var(--border-mint)] rounded-xl bg-emerald-50/20 text-xs text-[var(--text-dark)]">
+                <input type="number" id="customSugar" placeholder="Сахар" class="col-span-2 p-2 border border-[var(--border-mint)] rounded-xl bg-pink-50/20 text-xs text-pink-500 font-medium">
+                <button onclick="saveCustomProduct()" class="col-span-2 bg-emerald-600 text-white rounded-xl font-bold text-[10px] active:scale-95">Сохр.</button>
             </div>
 
-            <!-- Поиск по базе -->
             <input type="text" id="searchBase" oninput="renderCustomBase()" placeholder="🔍 Быстрый поиск по базе..." class="w-full p-2 mb-2 border border-[var(--border-mint)] rounded-xl bg-emerald-50/10 dark:bg-emerald-950/30 text-xs text-[var(--text-dark)]">
 
             <div id="customList" class="space-y-1.5 max-h-72 overflow-y-auto text-[11px]"></div>
@@ -264,7 +275,6 @@
                 <span class="text-[10px] text-[var(--text-muted)]">🟢 норма | 🟡 мало | 🔴 перебор</span>
             </div>
             
-            <!-- Сводка за неделю -->
             <div id="weeklyStats" class="mb-3 p-2.5 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-xl text-[11px] font-medium text-emerald-800 dark:text-emerald-200">
                 📊 Загрузка статистики...
             </div>
@@ -273,8 +283,8 @@
         </div>
     </div>
 
-    <!-- Нижняя панель навигации (5 вкладок) -->
-    <div class="fixed bottom-0 left-0 right-0 app-card border-t border-[var(--border-mint)] py-2 px-0.5 flex justify-around max-w-md mx-auto z-50 shadow-lg">
+    <!-- Нижняя панель навигации (5 вкладок) с учетом зоны жестов -->
+    <div class="fixed bottom-0 left-0 right-0 app-card border-t border-[var(--border-mint)] pt-2 px-0.5 flex justify-around max-w-md mx-auto z-50 shadow-[0_-4px_15px_rgba(0,0,0,0.05)] bottom-nav-safe">
         <button onclick="switchTab('home')" id="btn-home" class="flex flex-col items-center text-emerald-600 dark:text-emerald-400 font-bold text-[10px] w-1/5">
             <span class="text-base leading-none mb-0.5">🏠</span>Главная
         </button>
@@ -293,7 +303,6 @@
     </div>
 
     <script>
-        // Инициализация Telegram WebApp и тактильного отклика
         const tg = window.Telegram?.WebApp;
         if (tg) { tg.ready(); tg.expand(); }
 
@@ -312,7 +321,6 @@
             }
         }
 
-        // Тема
         let isDark = localStorage.getItem('nutri_dark') === 'true';
         if (isDark) document.getElementById('htmlRoot').classList.add('dark');
 
@@ -323,7 +331,6 @@
             document.getElementById('htmlRoot').classList.toggle('dark', isDark);
         }
 
-        // Переключение вкладок
         function switchTab(tabId) {
             haptic('light');
             hideKeyboard();
@@ -341,25 +348,19 @@
             window.scrollTo(0, 0);
         }
 
-        // Базовые продукты по умолчанию (на 100г)
         const defaultProducts = [
-            { name: 'Овсяная каша', kcal: 120, p: 4, f: 2, c: 22 },
-            { name: 'Куриная грудка (филе)', kcal: 150, p: 30, f: 3, c: 0 },
-            { name: 'Рис отварной', kcal: 130, p: 2.7, f: 0.3, c: 28 },
-            { name: 'Лосось запеченный', kcal: 206, p: 22, f: 13, c: 0 },
-            { name: 'Творог 5%', kcal: 121, p: 17, f: 5, c: 1.8 },
-            { name: 'Яйца куриные (2 шт)', kcal: 155, p: 13, f: 11, c: 1.1 },
-            { name: 'Гречка отварная', kcal: 110, p: 4, f: 1, c: 21 },
-            { name: 'Банан', kcal: 89, p: 1.1, f: 0.3, c: 23 }
+            { name: 'Овсяная каша', kcal: 120, p: 4, f: 2, c: 22, sugar: 0 },
+            { name: 'Кока-кола', kcal: 42, p: 0, f: 0, c: 10.6, sugar: 10.6 },
+            { name: 'Творог 5%', kcal: 121, p: 17, f: 5, c: 1.8, sugar: 1.5 },
+            { name: 'Шоколад молочный', kcal: 535, p: 7, f: 30, c: 59, sugar: 50 },
+            { name: 'Банан', kcal: 89, p: 1.1, f: 0.3, c: 23, sugar: 12 }
         ];
 
-        // Состояние данных (вода теперь хранится в миллилитрах для точного учета 150/250/500 мл)
         let waterMl = parseInt(localStorage.getItem('nutri_water_ml')) || 0;
         let foodItems = JSON.parse(localStorage.getItem('nutri_food')) || [];
         let customProducts = JSON.parse(localStorage.getItem('nutri_custom_base')) || [
-            { name: 'Блины с творогом', kcal: 250 },
-            { name: 'Макароны с тефтелями', kcal: 210 },
-            { name: 'Салат свекольный', kcal: 125 }
+            { name: 'Блины с творогом', kcal: 250, sugar: 8 },
+            { name: 'Салат свекольный', kcal: 125, sugar: 2 }
         ];
         let historyData = JSON.parse(localStorage.getItem('nutri_history')) || {};
         
@@ -372,12 +373,12 @@
         let vitaminsState = JSON.parse(localStorage.getItem('nutri_vitamins')) || { d3: false, c: false, magnesium: false, zinc: false };
 
         let currentTargetKcal = 2425;
-        let targetP = 149, targetF = 81, targetC = 275;
+        let targetP = 149, targetF = 81, targetC = 275, targetS = 60;
         let waterTargetMl = 2500;
         let currentMealCat = 'Завтрак';
         let selectedBaseKcal100 = 0;
+        let selectedBaseSugar100 = 0;
 
-        // ПРОВЕРКА СМЕНЫ ДНЯ
         function checkDateRollover() {
             const todayStr = new Date().toISOString().slice(0, 10);
             const lastActiveDate = localStorage.getItem('nutri_last_date');
@@ -401,13 +402,11 @@
 
         checkDateRollover();
 
-        // Загрузка сохраненных параметров тела
         if (localStorage.getItem('nutri_w')) document.getElementById('w').value = localStorage.getItem('nutri_w');
         if (localStorage.getItem('nutri_h')) document.getElementById('h').value = localStorage.getItem('nutri_h');
         if (localStorage.getItem('nutri_a')) document.getElementById('a').value = localStorage.getItem('nutri_a');
         if (localStorage.getItem('nutri_goal')) document.getElementById('goal').value = localStorage.getItem('nutri_goal');
 
-        // Переключение категории приема пищи
         function setMealCat(cat) {
             haptic('light');
             currentMealCat = cat;
@@ -421,18 +420,17 @@
             });
         }
 
-        // Обновление выпадающего списка продуктов
         function updatePresetSelect() {
             let html = `<option value="">-- Выберите продукт (расчет на 100г) --</option>`;
             html += `<optgroup label="Базовые продукты">`;
             defaultProducts.forEach(p => {
-                html += `<option value="${p.name}|${p.kcal}">${p.name} — ${p.kcal} ккал/100г</option>`;
+                html += `<option value="${p.name}|${p.kcal}|${p.sugar || 0}">${p.name} — ${p.kcal} ккал (Сахар: ${p.sugar || 0}г)</option>`;
             });
             html += `</optgroup>`;
             if (customProducts.length > 0) {
                 html += `<optgroup label="Мои продукты">`;
                 customProducts.forEach(p => {
-                    html += `<option value="${p.name}|${p.kcal}">${p.name} — ${p.kcal} ккал/100г</option>`;
+                    html += `<option value="${p.name}|${p.kcal}|${p.sugar || 0}">${p.name} — ${p.kcal} ккал (Сахар: ${p.sugar || 0}г)</option>`;
                 });
                 html += `</optgroup>`;
             }
@@ -455,8 +453,9 @@
             filtered.forEach(p => {
                 const row = document.createElement('div');
                 row.className = 'flex justify-between items-center p-2 bg-emerald-50/40 dark:bg-emerald-950/30 rounded-xl';
+                const sLabel = p.sugar ? `<span class="text-[9px] text-pink-500 ml-1">Сахар: ${p.sugar}г</span>` : '';
                 row.innerHTML = `
-                    <span class="font-medium text-[var(--text-dark)]">${p.name} — <b class="text-emerald-600 dark:text-emerald-400">${p.kcal} ккал</b>/100г</span>
+                    <span class="font-medium text-[var(--text-dark)]">${p.name} — <b class="text-emerald-600 dark:text-emerald-400">${p.kcal} ккал</b>/100г ${sLabel}</span>
                     <button onclick="removeCustom(${p.idx})" class="text-red-400 hover:text-red-600 font-bold px-2">×</button>
                 `;
                 customListDiv.appendChild(row);
@@ -466,12 +465,14 @@
         function saveCustomProduct() {
             const name = document.getElementById('customName').value.trim();
             const kcal = parseInt(document.getElementById('customKcal').value);
+            const sugar = parseFloat(document.getElementById('customSugar').value) || 0;
             if (name && !isNaN(kcal) && kcal > 0) {
                 haptic('success');
-                customProducts.push({ name, kcal });
+                customProducts.push({ name, kcal, sugar });
                 localStorage.setItem('nutri_custom_base', JSON.stringify(customProducts));
                 document.getElementById('customName').value = '';
                 document.getElementById('customKcal').value = '';
+                document.getElementById('customSugar').value = '';
                 hideKeyboard();
                 updatePresetSelect();
             }
@@ -488,11 +489,15 @@
             const sel = document.getElementById('foodPreset');
             if (!sel.value) return;
             haptic('light');
-            const [name, kcal100] = sel.value.split('|');
+            const [name, kcal100, sugar100] = sel.value.split('|');
             selectedBaseKcal100 = parseFloat(kcal100) || 0;
+            selectedBaseSugar100 = parseFloat(sugar100) || 0;
+            
             document.getElementById('foodName').value = name;
             const grams = parseFloat(document.getElementById('foodGrams').value) || 100;
+            
             document.getElementById('foodKcal').value = Math.round((selectedBaseKcal100 * grams) / 100);
+            document.getElementById('foodSugar').value = Math.round((selectedBaseSugar100 * grams) / 100);
             sel.value = "";
         }
 
@@ -500,10 +505,10 @@
             if (selectedBaseKcal100 > 0) {
                 const grams = parseFloat(document.getElementById('foodGrams').value) || 0;
                 document.getElementById('foodKcal').value = Math.round((selectedBaseKcal100 * grams) / 100);
+                document.getElementById('foodSugar').value = Math.round((selectedBaseSugar100 * grams) / 100);
             }
         }
 
-        // Витамины с оповещением
         function renderVitamins() {
             const container = document.getElementById('vitaminsList');
             container.innerHTML = '';
@@ -553,9 +558,9 @@
         function editVit(idx) {
             haptic('light');
             const current = vitaminsMeta[idx];
-            const newName = prompt('Введите название витамина/добавки:', current.name);
+            const newName = prompt('Введите название витамина:', current.name);
             if (newName && newName.trim()) {
-                const newDesc = prompt('Дозировка и время приема:', current.desc);
+                const newDesc = prompt('Дозировка:', current.desc);
                 vitaminsMeta[idx].name = newName.trim();
                 if (newDesc !== null) vitaminsMeta[idx].desc = newDesc.trim();
                 localStorage.setItem('nutri_vit_meta', JSON.stringify(vitaminsMeta));
@@ -563,12 +568,10 @@
             }
         }
 
-        // Трекер воды с кастомными объемами (+150, +250, +500 мл)
         function renderWater() {
             const container = document.getElementById('waterGlasses');
             container.innerHTML = '';
             
-            // Визуальные шкалы по 250 мл
             const totalGlasses = Math.max(8, Math.round(waterTargetMl / 250));
             const currentGlasses = Math.floor(waterMl / 250);
 
@@ -599,11 +602,11 @@
             renderWater();
         }
 
-        // Отрисовка дневника питания + мини-диаграмма недели на Главной
         function renderFood() {
             const list = document.getElementById('foodList');
             list.innerHTML = '';
             let totalEaten = 0;
+            let totalSugar = 0;
 
             const categories = ['Завтрак', 'Обед', 'Ужин', 'Перекус'];
             categories.forEach(cat => {
@@ -618,6 +621,7 @@
 
                     catItems.forEach(item => {
                         totalEaten += Number(item.kcal);
+                        totalSugar += (Number(item.sugar) || 0);
                         const div = document.createElement('div');
                         div.className = 'swipe-item flex justify-between items-center p-2 bg-emerald-50/40 dark:bg-emerald-950/30 rounded-xl';
                         
@@ -629,8 +633,9 @@
                         }, { passive: true });
 
                         const gramsLabel = item.grams ? ` <span class="text-[10px] text-[var(--text-muted)]">(${item.grams}г)</span>` : '';
+                        const sugarLabel = item.sugar ? ` <span class="text-[9px] text-pink-500 font-bold ml-1">🍬${item.sugar}г</span>` : '';
                         div.innerHTML = `
-                            <span class="font-medium text-[var(--text-dark)]">${item.name}${gramsLabel}</span>
+                            <span class="font-medium text-[var(--text-dark)]">${item.name}${gramsLabel}${sugarLabel}</span>
                             <div class="flex items-center gap-2">
                                 <span class="font-bold text-emerald-600 dark:text-emerald-400">${item.kcal} ккал</span>
                                 <button onclick="removeFood(${item.index})" class="text-red-400 hover:text-red-600 font-bold px-1.5 text-sm">×</button>
@@ -645,7 +650,7 @@
             });
 
             if (foodItems.length === 0) {
-                list.innerHTML = `<div class="text-center py-4 text-[var(--text-muted)]">Дневник за сегодня пуст. Добавьте первое блюдо!</div>`;
+                list.innerHTML = `<div class="text-center py-4 text-[var(--text-muted)]">Дневник пуст. Добавьте первое блюдо!</div>`;
             }
 
             document.getElementById('foodTotal').innerText = `${totalEaten} / ${currentTargetKcal} ккал`;
@@ -663,10 +668,12 @@
             document.getElementById('pBarText').innerText = `${eatenP} / ${targetP} г`;
             document.getElementById('fBarText').innerText = `${eatenF} / ${targetF} г`;
             document.getElementById('cBarText').innerText = `${eatenC} / ${targetC} г`;
+            document.getElementById('sBarText').innerText = `${totalSugar} / ${targetS} г`;
 
             document.getElementById('pBar').style.width = `${Math.min(100, (eatenP / targetP) * 100)}%`;
             document.getElementById('fBar').style.width = `${Math.min(100, (eatenF / targetF) * 100)}%`;
             document.getElementById('cBar').style.width = `${Math.min(100, (eatenC / targetC) * 100)}%`;
+            document.getElementById('sBar').style.width = `${Math.min(100, (totalSugar / targetS) * 100)}%`;
 
             localStorage.setItem('nutri_food', JSON.stringify(foodItems));
 
@@ -679,7 +686,6 @@
             updateSmartTips();
         }
 
-        // Отрисовка мини-диаграммы недели на главной
         function renderWeekMiniChart() {
             const container = document.getElementById('weekMiniChart');
             container.innerHTML = '';
@@ -721,18 +727,22 @@
             const nameInput = document.getElementById('foodName');
             const gramsInput = document.getElementById('foodGrams');
             const kcalInput = document.getElementById('foodKcal');
+            const sugarInput = document.getElementById('foodSugar');
             
             const name = nameInput.value.trim();
             const grams = parseInt(gramsInput.value) || 100;
             const kcal = parseInt(kcalInput.value);
+            const sugar = parseFloat(sugarInput.value) || 0;
 
             if (name && !isNaN(kcal) && kcal > 0) {
                 haptic('success');
-                foodItems.push({ name, kcal, grams, cat: currentMealCat });
+                foodItems.push({ name, kcal, grams, sugar, cat: currentMealCat });
                 nameInput.value = '';
                 kcalInput.value = '';
+                sugarInput.value = '';
                 gramsInput.value = '100';
                 selectedBaseKcal100 = 0;
+                selectedBaseSugar100 = 0;
                 hideKeyboard();
                 renderFood();
             }
@@ -744,7 +754,6 @@
             renderFood();
         }
 
-        // Фиксация и новый день
         function saveDayToArchive() {
             const todayStr = new Date().toISOString().slice(0, 10);
             const totalEaten = foodItems.reduce((acc, item) => acc + Number(item.kcal), 0);
@@ -768,7 +777,6 @@
             }
         }
 
-        // УМНЫЕ СОВЕТЫ + ВЕЧЕРНИЙ АЛЕРТ ПО ВОДЕ
         function updateSmartTips() {
             const tip = document.getElementById('smartTip');
             let totalEaten = foodItems.reduce((acc, item) => acc + Number(item.kcal), 0);
@@ -793,7 +801,6 @@
             }
         }
 
-        // РЕДАКТИРОВАНИЕ И УДАЛЕНИЕ ДНЕЙ В АРХИВЕ
         function editHistoryDay(dateStr) {
             haptic('light');
             const currentVal = historyData[dateStr] || 0;
@@ -888,6 +895,7 @@
             targetP = Math.round(w * 1.8);
             targetF = Math.round((currentTargetKcal * 0.3) / 9);
             targetC = Math.round((currentTargetKcal - targetP * 4 - targetF * 9) / 4);
+            targetS = Math.round((currentTargetKcal * 0.1) / 4); // ВОЗ: 10% от суточных калорий
 
             waterTargetMl = Math.round((w * 30));
             document.getElementById('waterNormHint').innerText = `Индивидуальная норма: 30 мл × ${w} кг = ${(waterTargetMl/1000).toFixed(2)} л`;
