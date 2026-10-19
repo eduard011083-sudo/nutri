@@ -27,7 +27,7 @@
             background-color: var(--bg-mint); 
             color: var(--text-dark); 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            padding-bottom: 80px; 
+            padding-bottom: 85px; 
             transition: background 0.3s, color 0.3s; 
             overflow-x: hidden;
         }
@@ -224,9 +224,8 @@
         </div>
     </div>
 
-    <!-- ================= ВКЛАДКА 4: БАЗА И АРХИВ ================= -->
-    <div id="tab-stats" class="tab-content space-y-3">
-        <!-- Своя база продуктов -->
+    <!-- ================= ВКЛАДКА 4: БАЗА ПРОДУКТОВ ================= -->
+    <div id="tab-base" class="tab-content space-y-3">
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <h3 class="font-bold text-sm text-[var(--text-dark)] mb-2">📚 Моя база продуктов (на 100г)</h3>
             
@@ -240,32 +239,43 @@
             <!-- Поиск по базе -->
             <input type="text" id="searchBase" oninput="renderCustomBase()" placeholder="🔍 Быстрый поиск по базе..." class="w-full p-2 mb-2 border border-[var(--border-mint)] rounded-xl bg-emerald-50/10 dark:bg-emerald-950/30 text-xs text-[var(--text-dark)]">
 
-            <div id="customList" class="space-y-1.5 max-h-44 overflow-y-auto text-[11px]"></div>
+            <div id="customList" class="space-y-1.5 max-h-72 overflow-y-auto text-[11px]"></div>
         </div>
+    </div>
 
-        <!-- Архив за 30 дней с возможностью редактирования -->
+    <!-- ================= ВКЛАДКА 5: АРХИВ КАЛОРИЙ ================= -->
+    <div id="tab-stats" class="tab-content space-y-3">
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-2">
                 <h3 class="font-bold text-sm text-[var(--text-dark)]">📅 Архив калорий (30 дней)</h3>
                 <span class="text-[10px] text-[var(--text-muted)]">🟢 норма | 🟡 мало | 🔴 перебор</span>
             </div>
-            <div id="historyList" class="space-y-1.5 text-[11px] max-h-60 overflow-y-auto pr-1"></div>
+            
+            <!-- Сводка за неделю -->
+            <div id="weeklyStats" class="mb-3 p-2.5 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-xl text-[11px] font-medium text-emerald-800 dark:text-emerald-200">
+                📊 Загрузка статистики...
+            </div>
+
+            <div id="historyList" class="space-y-1.5 text-[11px] max-h-80 overflow-y-auto pr-1"></div>
         </div>
     </div>
 
-    <!-- Нижняя панель навигации -->
-    <div class="fixed bottom-0 left-0 right-0 app-card border-t border-[var(--border-mint)] py-2 px-1 flex justify-around max-w-md mx-auto z-50 shadow-lg">
-        <button onclick="switchTab('home')" id="btn-home" class="flex flex-col items-center text-emerald-600 dark:text-emerald-400 font-bold text-[10px] w-1/4">
-            <span class="text-lg leading-none mb-0.5">🏠</span>Главная
+    <!-- Нижняя панель навигации (5 вкладок) -->
+    <div class="fixed bottom-0 left-0 right-0 app-card border-t border-[var(--border-mint)] py-2 px-0.5 flex justify-around max-w-md mx-auto z-50 shadow-lg">
+        <button onclick="switchTab('home')" id="btn-home" class="flex flex-col items-center text-emerald-600 dark:text-emerald-400 font-bold text-[10px] w-1/5">
+            <span class="text-base leading-none mb-0.5">🏠</span>Главная
         </button>
-        <button onclick="switchTab('food')" id="btn-food" class="flex flex-col items-center text-[var(--text-muted)] font-medium text-[10px] w-1/4">
-            <span class="text-lg leading-none mb-0.5">🍽️</span>Дневник
+        <button onclick="switchTab('food')" id="btn-food" class="flex flex-col items-center text-[var(--text-muted)] font-medium text-[10px] w-1/5">
+            <span class="text-base leading-none mb-0.5">🍽️</span>Дневник
         </button>
-        <button onclick="switchTab('water')" id="btn-water" class="flex flex-col items-center text-[var(--text-muted)] font-medium text-[10px] w-1/4">
-            <span class="text-lg leading-none mb-0.5">💧</span>Вода & Вит.
+        <button onclick="switchTab('water')" id="btn-water" class="flex flex-col items-center text-[var(--text-muted)] font-medium text-[10px] w-1/5">
+            <span class="text-base leading-none mb-0.5">💧</span>Вода & Вит.
         </button>
-        <button onclick="switchTab('stats')" id="btn-stats" class="flex flex-col items-center text-[var(--text-muted)] font-medium text-[10px] w-1/4">
-            <span class="text-lg leading-none mb-0.5">📊</span>База & Архив
+        <button onclick="switchTab('base')" id="btn-base" class="flex flex-col items-center text-[var(--text-muted)] font-medium text-[10px] w-1/5">
+            <span class="text-base leading-none mb-0.5">📚</span>База
+        </button>
+        <button onclick="switchTab('stats')" id="btn-stats" class="flex flex-col items-center text-[var(--text-muted)] font-medium text-[10px] w-1/5">
+            <span class="text-base leading-none mb-0.5">📊</span>Архив
         </button>
     </div>
 
@@ -300,19 +310,19 @@
             document.getElementById('htmlRoot').classList.toggle('dark', isDark);
         }
 
-        // Переключение вкладок
+        // Переключение вкладок (теперь их 5)
         function switchTab(tabId) {
             haptic('light');
             hideKeyboard();
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
 
-            ['home', 'food', 'water', 'stats'].forEach(id => {
+            ['home', 'food', 'water', 'base', 'stats'].forEach(id => {
                 const btn = document.getElementById('btn-' + id);
                 if (id === tabId) {
-                    btn.className = "flex flex-col items-center text-emerald-600 dark:text-emerald-400 font-bold text-[10px] w-1/4";
+                    btn.className = "flex flex-col items-center text-emerald-600 dark:text-emerald-400 font-bold text-[10px] w-1/5";
                 } else {
-                    btn.className = "flex flex-col items-center text-[var(--text-muted)] font-medium text-[10px] w-1/4";
+                    btn.className = "flex flex-col items-center text-[var(--text-muted)] font-medium text-[10px] w-1/5";
                 }
             });
             window.scrollTo(0, 0);
@@ -641,7 +651,6 @@
 
             localStorage.setItem('nutri_food', JSON.stringify(foodItems));
 
-            // Автоматическое обновление архива при изменении блюд
             const todayStr = new Date().toISOString().slice(0, 10);
             historyData[todayStr] = totalEaten;
             localStorage.setItem('nutri_history', JSON.stringify(historyData));
@@ -701,14 +710,13 @@
             }
         }
 
-        // УМНЫЕ СОВЕТЫ + ВЕЧЕРНИЙ ТРЕВОЖНЫЙ АЛЕРТ ПО ВОДЕ
+        // УМНЫЕ СОВЕТЫ + ВЕЧЕРНИЙ АЛЕРТ ПО ВОДЕ
         function updateSmartTips() {
             const tip = document.getElementById('smartTip');
             let totalEaten = foodItems.reduce((acc, item) => acc + Number(item.kcal), 0);
             let waterL = water * 0.25;
             const currentHour = new Date().getHours();
 
-            // Если время после 18:00 (6 вечера) и выпито меньше половины нормы
             if (currentHour >= 18 && waterL < (waterTargetL / 2)) {
                 tip.innerHTML = `🚨 <b>Внимание (вечерний алерт):</b> Вы выпили всего ${waterL.toFixed(2)} л воды из ${waterTargetL.toFixed(2)} л! Срочно выпейте пару стаканов до сна!`;
                 tip.className = "app-card p-2.5 rounded-2xl border mb-3 text-[11px] font-medium text-red-800 dark:text-red-200 bg-red-50/80 dark:bg-red-950/50 shadow-sm border-red-200";
@@ -727,7 +735,7 @@
             }
         }
 
-        // РЕДАКТИРУЕМЫЙ АРХИВ КАЛОРИЙ (КНОПКА ✏️)
+        // РЕДАКТИРОВАНИЕ И УДАЛЕНИЕ ДНЕЙ В АРХИВЕ
         function editHistoryDay(dateStr) {
             haptic('light');
             const currentVal = historyData[dateStr] || 0;
@@ -744,14 +752,37 @@
             }
         }
 
+        function deleteHistoryDay(dateStr) {
+            if (confirm(`Удалить запись за ${dateStr} из архива?`)) {
+                haptic('success');
+                delete historyData[dateStr];
+                localStorage.setItem('nutri_history', JSON.stringify(historyData));
+                renderHistory();
+            }
+        }
+
         function renderHistory() {
             const container = document.getElementById('historyList');
+            const statsContainer = document.getElementById('weeklyStats');
             container.innerHTML = '';
+            
             const dates = Object.keys(historyData).sort().reverse().slice(0, 30);
+            
+            // Расчет статистики за последние 7 дней
+            let recentSum = 0;
+            let recentCount = 0;
+            dates.slice(0, 7).forEach(d => {
+                const val = historyData[d];
+                if (val > 0) { recentSum += val; recentCount++; }
+            });
+            const avgKcal = recentCount > 0 ? Math.round(recentSum / recentCount) : 0;
+            statsContainer.innerHTML = `📈 Среднее за последние дни: <b>${avgKcal} ккал/день</b> (цель: ${currentTargetKcal})`;
+
             if (dates.length === 0) {
-                container.innerHTML = '<div class="text-[var(--text-muted)]">Нет сохраненных записей.</div>';
+                container.innerHTML = '<div class="text-[var(--text-muted)] text-center py-4">Нет сохраненных записей в архиве.</div>';
                 return;
             }
+
             dates.forEach(d => {
                 const val = historyData[d];
                 if (val === undefined || val === null) return;
@@ -769,11 +800,14 @@
                 const row = document.createElement('div');
                 row.className = 'flex justify-between items-center p-2 bg-emerald-50/30 dark:bg-emerald-950/20 rounded-xl';
                 row.innerHTML = `
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5">
                         <span class="font-medium text-[var(--text-dark)]">${d}</span>
-                        <button onclick="editHistoryDay('${d}')" class="text-[10px] opacity-60 hover:opacity-100">✏️</button>
+                        <button onclick="editHistoryDay('${d}')" class="text-[10px] opacity-60 hover:opacity-100 px-0.5">✏️</button>
                     </div>
-                    <span class="font-bold ${badgeColor}">${dot} ${val} ккал</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold ${badgeColor}">${dot} ${val} ккал</span>
+                        <button onclick="deleteHistoryDay('${d}')" class="text-red-400 hover:text-red-600 font-bold px-1 text-sm">×</button>
+                    </div>
                 `;
                 container.appendChild(row);
             });
