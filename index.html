@@ -27,7 +27,7 @@
             background-color: var(--bg-mint); 
             color: var(--text-dark); 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            padding-bottom: 120px; /* Отступ для списков, чтобы они не прятались за меню */
+            padding-bottom: 120px; 
             transition: background 0.3s, color 0.3s; 
             overflow-x: hidden;
         }
@@ -37,11 +37,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
         .ring-progress { transition: stroke-dashoffset 0.5s ease-out; }
         .swipe-item { transition: transform 0.2s ease, opacity 0.2s ease; touch-action: pan-y; }
-        
-        /* Умный отступ для нижнего меню от системных жестов телефона */
-        .bottom-nav-safe {
-            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-        }
+        .bottom-nav-safe { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
     </style>
 </head>
 <body class="p-3 max-w-md mx-auto text-xs select-none">
@@ -62,15 +58,12 @@
 
     <!-- ================= ВКЛАДКА 1: ГЛАВНАЯ ================= -->
     <div id="tab-home" class="tab-content active space-y-3 pb-2">
-        
-        <!-- Прогресс за день -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-2">
                 <span class="font-bold text-sm text-[var(--text-dark)]">📊 Прогресс за день</span>
                 <span id="homeKcalFraction" class="text-xs font-bold text-emerald-600 dark:text-emerald-400">0 / 2425 ккал</span>
             </div>
 
-            <!-- Круговая диаграмма -->
             <div class="relative w-32 h-32 mx-auto my-2 flex items-center justify-center">
                 <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="9" class="text-emerald-100 dark:text-emerald-950" fill="transparent"/>
@@ -83,7 +76,6 @@
                 <button onclick="addCustomWater(250)" title="Быстро добавить стакан воды" class="absolute -bottom-1 right-2 bg-sky-500 hover:bg-sky-600 active:scale-95 text-white w-8 h-8 rounded-full shadow-md flex items-center justify-center text-xs font-bold">🥤</button>
             </div>
 
-            <!-- Мини-диаграмма недели -->
             <div class="mt-3 pt-2 border-t border-[var(--border-mint)]">
                 <div class="text-[10px] text-[var(--text-muted)] mb-1 flex justify-between">
                     <span>📅 Активность за неделю</span>
@@ -92,7 +84,6 @@
                 <div id="weekMiniChart" class="flex justify-between gap-1"></div>
             </div>
 
-            <!-- Динамические прогресс-бары БЖУ + САХАР -->
             <div class="space-y-2 mt-3">
                 <div>
                     <div class="flex justify-between text-[11px] mb-0.5">
@@ -189,7 +180,6 @@
                 </select>
             </div>
 
-            <!-- Поля ввода с добавлением Сахара -->
             <div class="grid grid-cols-12 gap-1.5 mb-2.5 items-end">
                 <div class="col-span-12 mb-1">
                     <label class="text-[9px] text-[var(--text-muted)]">Продукт / Блюдо</label>
@@ -218,8 +208,39 @@
         </div>
     </div>
 
-    <!-- ================= ВКЛАДКА 3: ВОДА И ВИТАМИНЫ ================= -->
+    <!-- ================= ВКЛАДКА 3: ВОДА, ВИТАМИНЫ И ПИВНОЙ БАР ================= -->
     <div id="tab-water" class="tab-content space-y-3">
+        
+        <!-- ОСОЗНАННЫЙ БАР (ПИВНОЙ ДИЗАЙН: ЯНТАРЬ, СОЛОД И ПЕНА) -->
+        <div class="bg-gradient-to-br from-[#FFFBEB] via-[#FEF3C7] to-[#FDE68A] dark:from-[#291D0A] dark:via-[#1F1608] dark:to-[#171005] p-3.5 rounded-2xl border-2 border-amber-300 dark:border-amber-700/60 shadow-sm relative overflow-hidden">
+            <!-- Декоративная "пенная" полоска сверху -->
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-white/90 dark:bg-amber-200/20"></div>
+            <!-- Фоновая водяная марка -->
+            <div class="absolute -right-3 -top-3 text-6xl opacity-15 pointer-events-none">🍺</div>
+            <div class="absolute right-12 -bottom-4 text-5xl opacity-10 pointer-events-none">🌾</div>
+
+            <div class="flex justify-between items-center mb-1 relative z-10">
+                <span class="font-extrabold text-sm text-amber-950 dark:text-amber-300 flex items-center gap-1">🍻 Осознанный бар</span>
+                <span id="alcFraction" class="text-xs font-extrabold px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-950 dark:text-amber-200 border border-amber-400/40">0 / 14 доз</span>
+            </div>
+            <p class="text-[10px] text-amber-900/80 dark:text-amber-200/70 mb-2 relative z-10">Лимит ВОЗ низкого риска: 14 стандартных доз в неделю.</p>
+            
+            <!-- Шкала с эффектом бокала -->
+            <div class="w-full h-3 bg-white/80 dark:bg-black/40 border border-amber-300 dark:border-amber-800/60 rounded-full overflow-hidden mb-1.5 relative z-10 p-0.5">
+                <div id="alcBar" class="h-full rounded-full bg-amber-500 transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p id="alcAlertText" class="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 mb-3 relative z-10">🟢 Отличный контроль! Риски минимальны.</p>
+            
+            <p class="text-[9px] font-semibold text-amber-950 dark:text-amber-200 mb-1.5 opacity-90 relative z-10">Добавить напиток (+автозапись калорий в дневник):</p>
+            <div class="grid grid-cols-2 gap-1.5 relative z-10">
+                <button onclick="addDrink('beer3')" class="bg-[#FFFDF7] hover:bg-white dark:bg-[#33240D] text-amber-950 dark:text-amber-100 border border-amber-400/80 dark:border-amber-700 py-2 rounded-xl font-bold text-[10px] shadow-sm active:scale-95 transition">🍺 Пиво (0.3л)</button>
+                <button onclick="addDrink('beer5')" class="bg-[#FFFDF7] hover:bg-white dark:bg-[#33240D] text-amber-950 dark:text-amber-100 border border-amber-400/80 dark:border-amber-700 py-2 rounded-xl font-bold text-[10px] shadow-sm active:scale-95 transition">🍺 Пиво (0.5л)</button>
+                <button onclick="addDrink('wine')" class="bg-[#FFFDF7] hover:bg-white dark:bg-[#33240D] text-amber-950 dark:text-amber-100 border border-amber-400/80 dark:border-amber-700 py-2 rounded-xl font-bold text-[10px] shadow-sm active:scale-95 transition">🍷 Вино (150мл)</button>
+                <button onclick="addDrink('shot')" class="bg-[#FFFDF7] hover:bg-white dark:bg-[#33240D] text-amber-950 dark:text-amber-100 border border-amber-400/80 dark:border-amber-700 py-2 rounded-xl font-bold text-[10px] shadow-sm active:scale-95 transition">🥃 Крепкий (40мл)</button>
+            </div>
+        </div>
+
+        <!-- Вода -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-1">
                 <span class="font-bold text-sm text-[var(--text-dark)]">💧 Баланс воды</span>
@@ -237,6 +258,7 @@
             </div>
         </div>
 
+        <!-- Витамины -->
         <div class="app-card p-3.5 rounded-2xl border shadow-sm">
             <div class="flex justify-between items-center mb-2">
                 <div class="flex items-center gap-1.5">
@@ -283,7 +305,7 @@
         </div>
     </div>
 
-    <!-- Нижняя панель навигации (5 вкладок) с учетом зоны жестов -->
+    <!-- Нижняя панель навигации -->
     <div class="fixed bottom-0 left-0 right-0 app-card border-t border-[var(--border-mint)] pt-2 px-0.5 flex justify-around max-w-md mx-auto z-50 shadow-[0_-4px_15px_rgba(0,0,0,0.05)] bottom-nav-safe">
         <button onclick="switchTab('home')" id="btn-home" class="flex flex-col items-center text-emerald-600 dark:text-emerald-400 font-bold text-[10px] w-1/5">
             <span class="text-base leading-none mb-0.5">🏠</span>Главная
@@ -358,11 +380,9 @@
 
         let waterMl = parseInt(localStorage.getItem('nutri_water_ml')) || 0;
         let foodItems = JSON.parse(localStorage.getItem('nutri_food')) || [];
-        let customProducts = JSON.parse(localStorage.getItem('nutri_custom_base')) || [
-            { name: 'Блины с творогом', kcal: 250, sugar: 8 },
-            { name: 'Салат свекольный', kcal: 125, sugar: 2 }
-        ];
+        let customProducts = JSON.parse(localStorage.getItem('nutri_custom_base')) || [];
         let historyData = JSON.parse(localStorage.getItem('nutri_history')) || {};
+        let alcoholHistory = JSON.parse(localStorage.getItem('nutri_alcohol')) || {};
         
         let vitaminsMeta = JSON.parse(localStorage.getItem('nutri_vit_meta')) || [
             { id: 'd3', name: 'Витамин D3', desc: '2000 МЕ (утром с жирами)' },
@@ -375,7 +395,7 @@
         let currentTargetKcal = 2425;
         let targetP = 149, targetF = 81, targetC = 275, targetS = 60;
         let waterTargetMl = 2500;
-        let currentMealCat = 'Завтрак';
+        let currentMealCat = 'Ужин';
         let selectedBaseKcal100 = 0;
         let selectedBaseSugar100 = 0;
 
@@ -602,6 +622,63 @@
             renderWater();
         }
 
+        // АЛКОГОЛЬНЫЙ БЛОК (ПИВНОЙ СТИЛЬ)
+        function renderAlcohol() {
+            const today = new Date();
+            let weeklyUnits = 0;
+            
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                const dateStr = d.toISOString().slice(0, 10);
+                weeklyUnits += (alcoholHistory[dateStr] || 0);
+            }
+
+            document.getElementById('alcFraction').innerText = `${weeklyUnits.toFixed(1)} / 14 доз`;
+            
+            const bar = document.getElementById('alcBar');
+            const alertText = document.getElementById('alcAlertText');
+            
+            let fillPct = Math.min(100, (weeklyUnits / 14) * 100);
+            bar.style.width = `${fillPct}%`;
+
+            if (weeklyUnits <= 7) {
+                bar.className = "h-full rounded-full bg-amber-500 transition-all duration-500";
+                alertText.innerHTML = "🟢 Отличный контроль! Риски минимальны.";
+                alertText.className = "text-[9px] font-bold text-emerald-700 dark:text-emerald-400 mb-3 relative z-10";
+            } else if (weeklyUnits <= 11) {
+                bar.className = "h-full rounded-full bg-orange-500 transition-all duration-500";
+                alertText.innerHTML = "🟡 Вы приближаетесь к недельному лимиту. Пора сделать паузу.";
+                alertText.className = "text-[9px] font-bold text-amber-800 dark:text-amber-300 mb-3 relative z-10";
+            } else {
+                bar.className = "h-full rounded-full bg-red-600 transition-all duration-500";
+                alertText.innerHTML = "🚨 Недельный лимит превышен! Дайте организму отдохнуть.";
+                alertText.className = "text-[9px] font-bold text-red-600 dark:text-red-400 mb-3 relative z-10";
+            }
+        }
+
+        function addDrink(type) {
+            const drinks = {
+                beer3: { name: '🍺 Пиво (0.33л)', kcal: 140, u: 1.3 },
+                beer5: { name: '🍺 Пиво (0.5л)', kcal: 215, u: 2.0 },
+                wine: { name: '🍷 Вино (150мл)', kcal: 125, u: 1.5 },
+                shot: { name: '🥃 Крепкий (40мл)', kcal: 95, u: 1.3 }
+            };
+
+            const drink = drinks[type];
+            const todayStr = new Date().toISOString().slice(0, 10);
+            
+            alcoholHistory[todayStr] = (alcoholHistory[todayStr] || 0) + drink.u;
+            localStorage.setItem('nutri_alcohol', JSON.stringify(alcoholHistory));
+            
+            foodItems.push({ name: drink.name, kcal: drink.kcal, grams: 0, sugar: 0, cat: 'Ужин' });
+            
+            haptic('success');
+            renderAlcohol();
+            renderFood();
+            alert(`Добавлено: ${drink.name}.\n+${drink.u} доз в бар и +${drink.kcal} ккал в дневник питания!`);
+        }
+
         function renderFood() {
             const list = document.getElementById('foodList');
             list.innerHTML = '';
@@ -750,6 +827,23 @@
 
         function removeFood(index) {
             haptic('light');
+            
+            const item = foodItems[index];
+            if (item.name.includes('🍷') || item.name.includes('🍺') || item.name.includes('🥃')) {
+                const todayStr = new Date().toISOString().slice(0, 10);
+                let u = 0;
+                if (item.name.includes('Вино')) u = 1.5;
+                if (item.name.includes('Пиво (0.33л)')) u = 1.3;
+                if (item.name.includes('Пиво (0.5л)')) u = 2.0;
+                if (item.name.includes('Крепкий')) u = 1.3;
+                
+                if (u > 0 && alcoholHistory[todayStr]) {
+                    alcoholHistory[todayStr] = Math.max(0, alcoholHistory[todayStr] - u);
+                    localStorage.setItem('nutri_alcohol', JSON.stringify(alcoholHistory));
+                    renderAlcohol();
+                }
+            }
+
             foodItems.splice(index, 1);
             renderFood();
         }
@@ -895,16 +989,16 @@
             targetP = Math.round(w * 1.8);
             targetF = Math.round((currentTargetKcal * 0.3) / 9);
             targetC = Math.round((currentTargetKcal - targetP * 4 - targetF * 9) / 4);
-            targetS = Math.round((currentTargetKcal * 0.1) / 4); // ВОЗ: 10% от суточных калорий
+            targetS = Math.round((currentTargetKcal * 0.1) / 4);
 
             waterTargetMl = Math.round((w * 30));
             document.getElementById('waterNormHint').innerText = `Индивидуальная норма: 30 мл × ${w} кг = ${(waterTargetMl/1000).toFixed(2)} л`;
 
             renderWater();
+            renderAlcohol();
             renderFood();
         }
 
-        // Запуск при старте
         updatePresetSelect();
         renderVitamins();
         calc();
